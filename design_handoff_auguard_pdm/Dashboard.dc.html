@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+    <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#1B2027;font-family:'Satoshi',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    ::-webkit-scrollbar{width:9px;height:9px}
+    ::-webkit-scrollbar-thumb{background:#3a414c;border-radius:6px}
+    ::-webkit-scrollbar-track{background:transparent}
+    @keyframes scblink{0%,100%{opacity:1}50%{opacity:.25}}
+    @keyframes scpulse{0%{box-shadow:0 0 0 0 rgba(203,91,60,.45)}70%{box-shadow:0 0 0 12px rgba(203,91,60,0)}100%{box-shadow:0 0 0 0 rgba(203,91,60,0)}}
+    @keyframes scin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes sctoast{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:translateX(0)}}
+      h1,h2,h3,h4,h5{font-family:'Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif,system-ui,sans-serif!important}
+    </style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(1200px 600px at 80% -10%, #232a33 0%, #1B2027 60%);color:#DFD0B8">
+
+  <!-- STICKY TOP BAR -->
+  <div style="position:sticky;top:0;z-index:40;background:rgba(27,32,39,.93);backdrop-filter:blur(12px);border-bottom:1px solid #333b45;padding:0 26px">
+    <div style="max-width:1400px;margin:0 auto;height:58px;display:flex;align-items:center;justify-content:space-between;gap:20px">
+      <div style="display:flex;align-items:center;gap:18px">
+        <div style="display:flex;align-items:center;gap:11px">
+          <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(150deg,#948979,#DFD0B8);display:flex;align-items:center;justify-content:center">
+            <span style="font-weight:800;font-size:17px;color:#1B2027">A</span>
+          </div>
+          <span style="font-weight:700;font-size:16px;color:#DFD0B8">Auguard<span style="color:#948979;font-weight:500"> · PdM</span></span>
+        </div>
+        <div style="width:1px;height:22px;background:#333b45"></div>
+        <nav style="display:flex;gap:4px">
+          <span style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:600;color:#DFD0B8;background:#393E46;cursor:default">Dashboard</span>
+          <a href="Alerts.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Alerts</a>
+          <a href="Notifications.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Notifications</a>
+          <a href="Users.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Users</a>
+        </nav>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid #333b45;border-radius:999px;background:#222831">
+          <span style="width:7px;height:7px;border-radius:50%;background:#CB5B3C;animation:scblink 1.4s infinite"></span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#DFD0B8">LIVE</span>
+        </div>
+        <div style="position:relative;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #333b45;border-radius:10px;background:#222831">
+          <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:19px;color:#7c756a">notifications</span>
+          <sc-if value="{{ unreadShow }}" hint-placeholder-val="{{ true }}">
+            <span style="position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#CB5B3C;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #1B2027">{{ unread }}</span>
+          </sc-if>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;padding:5px 11px 5px 5px;border:1px solid #333b45;border-radius:999px;background:#222831">
+          <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(150deg,#393E46,#948979);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#DFD0B8">MW</span>
+          <div style="display:flex;flex-direction:column;line-height:1.2">
+            <span style="font-size:12px;font-weight:600;color:#DFD0B8">Mohamed W.</span>
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:.1em;color:#7b8a43">ADMIN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1400px;margin:0 auto;padding:22px 26px 36px;display:flex;flex-direction:column;gap:16px">
+
+    <!-- SIMULATION CONTROL STRIP -->
+    <div style="display:flex;align-items:center;gap:16px;padding:12px 16px;background:#222831;border:1px solid #333b45;border-radius:14px;flex-wrap:wrap">
+      <button onClick="{{ onPlay }}" style="display:flex;align-items:center;gap:9px;padding:9px 16px;border-radius:10px;border:none;background:#DFD0B8;color:#1B2027;font-family:'Satoshi';font-weight:700;font-size:13px;cursor:pointer;letter-spacing:.02em">
+        <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:17px">{{ playGlyph }}</span><span>{{ playLabel }}</span>
+      </button>
+      <button onClick="{{ onReset }}" style="display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:10px;border:1px solid #3a414c;background:transparent;color:#948979;font-family:'Satoshi';font-weight:600;font-size:12px;cursor:pointer"><span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:15px;color:inherit;margin-right:2px">refresh</span> RESET</button>
+
+      <div style="width:1px;height:26px;background:#333b45"></div>
+      <span style="font-family:'Satoshi';font-size:10px;letter-spacing:.14em;color:#7c756a">SPEED</span>
+      <div style="display:flex;gap:6px">
+        <button onClick="{{ onSpd05 }}" style="{{ spd05Style }}">0.5×</button>
+        <button onClick="{{ onSpd1 }}" style="{{ spd1Style }}">1×</button>
+        <button onClick="{{ onSpd2 }}" style="{{ spd2Style }}">2×</button>
+        <button onClick="{{ onSpd4 }}" style="{{ spd4Style }}">4×</button>
+      </div>
+
+      <div style="width:1px;height:26px;background:#333b45"></div>
+      <span style="font-family:'Satoshi';font-size:10px;letter-spacing:.14em;color:#7c756a">JUMP TO</span>
+      <div style="display:flex;gap:6px">
+        <button onClick="{{ onJumpF3 }}" style="{{ jumpF3Style }}">F3 · KNOWN</button>
+        <button onClick="{{ onJumpF4 }}" style="{{ jumpF4Style }}">F4 · UNKNOWN</button>
+      </div>
+
+      <div style="flex:1;min-width:200px;display:flex;align-items:center;gap:12px">
+        <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="display:inline-flex;align-items:center;gap:7px;font-family:'Satoshi';font-size:10.5px;font-weight:600;letter-spacing:.16em;padding:3px 9px;border-radius:6px;{{ phaseTagStyle }}">{{ phaseLabel }}</span>
+            <span style="font-family:'Satoshi';font-size:11px;color:#948979">{{ simDateLabel }}</span>
+          </div>
+          <div style="height:6px;border-radius:999px;background:#1B2027;overflow:hidden;border:1px solid #2c333d">
+            <div style="height:100%;border-radius:999px;{{ progressStyle }}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div style="display:flex;gap:16px;align-items:stretch">
+
+      <!-- LEFT COLUMN -->
+      <div style="flex:1.92;display:flex;flex-direction:column;gap:16px;min-width:0">
+
+        <!-- ANOMALY PANEL -->
+        <div style="background:#262C35;border:1px solid #333b45;border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:16px;{{ anomalyPanelStyle }}">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <span style="font-family:'Satoshi';font-size:11px;letter-spacing:.2em;color:#948979">ISOLATION FOREST · ANOMALY DETECTION</span>
+              <span style="font-family:'Satoshi';font-size:12.5px;color:#6f6a60">Primary detector · 99.5% failure recall · ROC-AUC 0.957</span>
+            </div>
+            <sc-if value="{{ driftShow }}" hint-placeholder-val="{{ true }}">
+              <span style="display:inline-flex;align-items:center;gap:7px;font-family:'Satoshi';font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 11px;border-radius:8px;background:rgba(201,154,63,.16);color:#E4C281;border:1px solid rgba(201,154,63,.4)"><span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:13px;color:inherit;margin-right:4px">warning</span> SENSOR DRIFT</span>
+            </sc-if>
+          </div>
+
+          <div style="display:flex;gap:22px;align-items:stretch">
+            <!-- status badge -->
+            <div style="flex:0 0 220px;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:18px;border-radius:14px;{{ statusBadgeStyle }}">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="width:11px;height:11px;border-radius:50%;{{ statusDotStyle }}"></span>
+                <span style="font-family:'Satoshi';font-size:11px;letter-spacing:.18em;color:#948979">STATUS</span>
+              </div>
+              <div style="font-family:'Satoshi';font-weight:800;font-size:40px;line-height:.95;letter-spacing:-.02em;{{ statusLabelStyle }}">{{ statusLabel }}</div>
+              <div style="font-family:'Satoshi';font-size:13px;color:#a59c8c;line-height:1.35">{{ statusSub }}</div>
+              <div style="margin-top:4px;display:flex;align-items:baseline;gap:8px">
+                <span style="font-family:'Satoshi';font-weight:700;font-size:34px;{{ scoreNumStyle }}">{{ scoreText }}</span>
+                <span style="font-family:'Satoshi';font-size:12px;color:#7c756a">/ thr 0.65</span>
+              </div>
+            </div>
+            <!-- chart -->
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;justify-content:flex-end">
+              <div style="display:flex;justify-content:space-between;font-family:'Satoshi';font-size:10px;color:#6f6a60;letter-spacing:.1em"><span>ANOMALY SCORE</span><span>1.0</span></div>
+              <div style="flex:1;min-height:150px;display:flex;align-items:flex-end">{{ anomalyChart }}</div>
+              <div style="display:flex;justify-content:space-between;font-family:'Satoshi';font-size:10px;color:#6f6a60"><span>−180 min</span><span style="color:#CB5B3C">— — threshold 0.65</span><span>now</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SENSOR STRIP -->
+        <div style="background:#262C35;border:1px solid #333b45;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:'Satoshi';font-size:11px;letter-spacing:.2em;color:#948979">LIVE SENSORS · HEADLINE CHANNELS</span>
+            <span style="font-family:'Satoshi';font-size:10.5px;color:#6f6a60">15 channels · 7 analog / 8 digital</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <sc-for list="{{ sensors }}" as="s" hint-placeholder-count="4">
+              <div style="background:#222831;border:1px solid #2f3742;border-radius:12px;padding:13px 15px;display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;justify-content:space-between">
+                  <span style="font-family:'Satoshi';font-weight:600;font-size:13px;color:#cabfa6">{{ s.label }}</span>
+                  <span style="font-family:'Satoshi';font-size:10px;letter-spacing:.08em;padding:3px 8px;border-radius:6px;{{ s.trendStyle }}">{{ s.trendText }}</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:6px">
+                  <span style="font-family:'Satoshi';font-weight:700;font-size:24px;color:#DFD0B8">{{ s.valueText }}</span>
+                  <span style="font-family:'Satoshi';font-size:12px;color:#7c756a">{{ s.unit }}</span>
+                </div>
+                <div style="height:50px">{{ s.chart }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT RAIL -->
+      <div style="flex:0 0 372px;width:372px;display:flex;flex-direction:column;gap:16px">
+
+        <!-- CLASSIFIER -->
+        <div style="background:#262C35;border:1px solid #333b45;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <span style="font-family:'Satoshi';font-size:11px;letter-spacing:.2em;color:#948979">XGBOOST CLASSIFIER</span>
+            <span style="font-family:'Satoshi';font-size:12px;color:#6f6a60">Failure type · confidence gate 0.60</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-radius:11px;{{ clfVerdictBox }}">
+            <span style="font-family:'Satoshi';font-size:10.5px;letter-spacing:.16em;color:#948979">PREDICTED</span>
+            <span style="font-family:'Satoshi';font-weight:800;font-size:22px;{{ clfVerdictStyle }}">{{ clfVerdict }}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <sc-for list="{{ clfRows }}" as="c" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:10px;{{ c.rowStyle }}">
+                <span style="font-family:'Satoshi';font-size:11px;color:#a59c8c;width:54px">{{ c.label }}</span>
+                <div style="flex:1;height:7px;border-radius:999px;background:#1B2027;overflow:hidden"><div style="height:100%;border-radius:999px;{{ c.barStyle }}"></div></div>
+                <span style="font-family:'Satoshi';font-size:11px;color:#cabfa6;width:38px;text-align:right">{{ c.pctText }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-family:'Satoshi';font-size:11px;line-height:1.4;padding:9px 11px;border-radius:9px;{{ clfNoteStyle }}">{{ clfNote }}</div>
+        </div>
+
+        <!-- RUL -->
+        <div style="background:#262C35;border:1px solid #333b45;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:13px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-family:'Satoshi';font-size:11px;letter-spacing:.2em;color:#948979">REMAINING USEFUL LIFE</span>
+            <span style="font-family:'Satoshi';font-size:10px;letter-spacing:.1em;padding:3px 9px;border-radius:6px;{{ rulZoneStyle }}">{{ rulZone }}</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <span style="font-family:'Satoshi';font-weight:700;font-size:42px;{{ rulNumStyle }}">{{ rulText }}</span>
+            <span style="font-family:'Satoshi';font-size:15px;color:#7c756a">hours</span>
+            <span style="margin-left:auto;font-family:'Satoshi';font-size:11px;color:#6f6a60">LightGBM · MAE {{ rulMae }}</span>
+          </div>
+          <div style="height:9px;border-radius:999px;background:#1B2027;overflow:hidden;border:1px solid #2c333d"><div style="height:100%;border-radius:999px;{{ rulBarStyle }}"></div></div>
+          <div style="display:flex;justify-content:space-between;font-family:'Satoshi';font-size:9.5px;color:#6f6a60"><span>0h</span><span>72h · degradation</span><span>168h cap</span></div>
+        </div>
+
+        <!-- FAULT LOCALIZATION -->
+        <sc-if value="{{ showFault }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#262C35;border:1px solid rgba(190,80,52,.45);border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:13px;animation:scin .4s ease both">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-family:'Satoshi';font-size:11px;letter-spacing:.2em;color:#948979">FAULT LOCALIZATION · LSTM-AE</span>
+              <span style="font-family:'Satoshi';font-weight:700;font-size:15px;color:#E0987F">{{ faultType }} Fault</span>
+            </div>
+            <span style="font-family:'Satoshi';font-size:10.5px;color:#6f6a60">Top culprit sensors · weighted reconstruction error</span>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ faultChips }}" as="f" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span style="font-family:'Satoshi';font-size:12px;font-weight:600;color:#DFD0B8;width:96px">{{ f.name }}</span>
+                  <div style="flex:1;height:8px;border-radius:999px;background:#1B2027;overflow:hidden"><div style="height:100%;border-radius:999px;background:linear-gradient(90deg,#CB5B3C,#E0987F);{{ f.barStyle }}"></div></div>
+                  <span style="font-family:'Satoshi';font-size:11px;color:#948979;width:34px;text-align:right">{{ f.pct }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:9px;padding:11px 13px;border-radius:10px;background:rgba(190,80,52,.1);border:1px solid rgba(190,80,52,.28)">
+              <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:16px;color:#DFD0B8">build</span>
+              <span style="font-family:'Satoshi';font-size:12.5px;line-height:1.4;color:#e7d9c0">{{ faultAction }}</span>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- AI ALERTS FEED -->
+    <div style="background:#262C35;border:1px solid #333b45;border-radius:16px;padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:'Satoshi';font-size:11px;letter-spacing:.2em;color:#948979">AI-GENERATED ALERTS · LIFECYCLE</span>
+        <span style="font-family:'Satoshi';font-size:10.5px;color:#6f6a60">auto-fires on 3 consecutive anomalous windows · created_by smartmetro-ai</span>
+      </div>
+      <sc-if value="{{ emptyAlertsShow }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:26px;text-align:center;font-family:'Satoshi';font-size:13px;color:#6f6a60;border:1px dashed #333b45;border-radius:12px">No alerts. System nominal — the detector will raise one automatically when the anomaly score breaches threshold.</div>
+      </sc-if>
+      <sc-for list="{{ alerts }}" as="a" hint-placeholder-count="1">
+        <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:#222831;border:1px solid #2f3742;border-radius:12px;animation:scin .35s ease both">
+          <span style="font-family:'Satoshi';font-size:10.5px;font-weight:600;letter-spacing:.1em;padding:5px 10px;border-radius:7px;{{ a.sevStyle }}">{{ a.sevLabel }}</span>
+          <div style="display:flex;flex-direction:column;gap:3px;min-width:188px">
+            <span style="font-family:'Satoshi';font-weight:700;font-size:14px;color:#DFD0B8">{{ a.title }}</span>
+            <span style="font-family:'Satoshi';font-size:10.5px;color:#7c756a">{{ a.id }} · {{ a.timeText }}</span>
+          </div>
+          <span style="flex:1;font-family:'Satoshi';font-size:12.5px;color:#a59c8c;line-height:1.35">{{ a.actionText }}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+            <span style="font-family:'Satoshi';font-size:10px;color:#6f6a60">SCORE</span>
+            <span style="font-family:'Satoshi';font-weight:700;font-size:15px;color:#E0987F">{{ a.scoreText }}</span>
+          </div>
+          <span style="font-family:'Satoshi';font-size:10.5px;font-weight:600;letter-spacing:.08em;padding:5px 11px;border-radius:999px;{{ a.statusStyle }}">{{ a.statusLabel }}</span>
+          <div style="display:flex;gap:7px;width:172px;justify-content:flex-end">
+            <sc-if value="{{ a.showAck }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ a.onAck }}" style="padding:7px 12px;border-radius:8px;border:1px solid #3a414c;background:transparent;color:#E4C281;font-family:'Satoshi';font-size:11px;font-weight:600;cursor:pointer">ACKNOWLEDGE</button>
+            </sc-if>
+            <sc-if value="{{ a.showResolve }}" hint-placeholder-val="{{ true }}">
+              <button onClick="{{ a.onResolve }}" style="padding:7px 12px;border-radius:8px;border:none;background:#7b8a43;color:#1B2027;font-family:'Satoshi';font-size:11px;font-weight:700;cursor:pointer">RESOLVE</button>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <sc-if value="{{ showToast }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;top:22px;right:26px;z-index:50;width:330px;padding:16px 18px;background:#2a2019;border:1px solid rgba(203,91,60,.55);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.5);animation:sctoast .4s ease both;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="width:30px;height:30px;border-radius:8px;background:rgba(203,91,60,.2);display:flex;align-items:center;justify-content:center;animation:scpulse 1.6s infinite"><span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:17px;color:#E0987F">warning</span></span>
+        <div style="display:flex;flex-direction:column">
+          <span style="font-family:'Satoshi';font-weight:700;font-size:14px;color:#E0987F">{{ toastTitle }}</span>
+          <span style="font-family:'Satoshi';font-size:10px;color:#948979;letter-spacing:.06em">{{ toastTime }}</span>
+        </div>
+      </div>
+      <span style="font-family:'Satoshi';font-size:12.5px;line-height:1.4;color:#d8c9af">{{ toastSub }}</span>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.p = 0;
+    this.tickN = 0;
+    this.playing = true;
+    this.speed = 1;
+    this.baseStep = 0.34;
+    this.scenario = 'F4';
+    this.latched = false;
+    this.consec = 0;
+    this.holdN = 0;
+    this.alertSeq = 0;
+    this.unread = 0;
+    this.alerts = [];
+    this.toast = null;
+    this.toastT = 0;
+    this.scoreBuf = [];
+    this.SENS = {
+      tp2:{normal:0.95,fail:2.10,ampN:0.06,ampF:0.42,min:0.55,max:2.85,unit:'bar',label:'TP2 · Compressor',dec:2,f:1.4},
+      h1: {normal:8.55,fail:9.62,ampN:0.10,ampF:0.50,min:7.9,max:10.25,unit:'bar',label:'H1 · Pressure',dec:2,f:0.9},
+      mc: {normal:4.05,fail:6.35,ampN:0.10,ampF:0.45,min:3.3,max:7.05,unit:'A',label:'Motor Current',dec:2,f:1.2},
+      oil:{normal:65.0,fail:77.0,ampN:0.5, ampF:1.4, min:60,  max:82,  unit:'°C',label:'Oil Temperature',dec:1,slow:true,f:0.7},
+    };
+    this.sBuf = {tp2:[],h1:[],mc:[],oil:[]};
+    this.threshold = 0.65;
+  }
+  componentDidMount(){ this.initBuffers(); this.timer = setInterval(()=>this.step(), 120); }
+  componentWillUnmount(){ clearInterval(this.timer); }
+
+  clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+  lerp(a,b,t){ return a+(b-a)*this.clamp(t,0,1); }
+
+  scoreAt(p){
+    let base;
+    if(p<42) base = 0.20 + 0.04*Math.sin(p*0.6);
+    else if(p<60) base = this.lerp(0.24,0.60,(p-42)/18);
+    else if(p<74) base = this.lerp(0.60,0.82,(p-60)/14);
+    else base = this.lerp(0.82,0.94,(p-74)/26);
+    const amp = p<42 ? 0.03 : 0.03 + 0.075*this.clamp((p-42)/45,0,1);
+    return this.clamp(base + (Math.random()-0.5)*amp*2 + 0.018*Math.sin(p*1.3), 0, 1);
+  }
+  sensorVal(c,p){
+    const degr = Math.pow(this.clamp((p-42)/56,0,1), c.slow?1.0:1.4);
+    const base = this.lerp(c.normal,c.fail,degr);
+    const amp = c.ampN + (c.ampF-c.ampN)*degr;
+    return base + (Math.random()-0.5)*amp*2 + amp*0.4*Math.sin(p*(c.f||1.1));
+  }
+  initBuffers(){
+    this.scoreBuf = []; this.sBuf = {tp2:[],h1:[],mc:[],oil:[]};
+    for(let i=0;i<70;i++){
+      const pp = i*0.3;
+      this.scoreBuf.push(this.scoreAt(pp));
+      for(const k in this.SENS) this.sBuf[k].push(this.sensorVal(this.SENS[k], pp));
+    }
+  }
+  rulAt(p){
+    const pts=[[0,116],[42,80],[60,40],[74,18],[88,8],[100,3]];
+    for(let i=0;i<pts.length-1;i++){ const[x0,y0]=pts[i],[x1,y1]=pts[i+1]; if(p<=x1) return this.lerp(y0,y1,(p-x0)/(x1-x0)); }
+    return 3;
+  }
+  simDate(){
+    const base = this.scenario==='F4' ? new Date(2020,6,15,14,30,0) : new Date(2020,5,5,10,0,0);
+    const ms = (this.p-63)*3*60000 + (this.tickN%20)*3000;
+    return new Date(base.getTime()+ms);
+  }
+  fmtDate(d){
+    const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const p2=x=>String(x).padStart(2,'0');
+    return M[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()+' · '+p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds());
+  }
+  fireAlert(score){
+    const a = {
+      id:'AL-'+(1042+this.alertSeq++),
+      dateObj:this.simDate(),
+      score:score,
+      status:'NEW',
+      scen:this.scenario,
+    };
+    this.alerts.unshift(a);
+    if(this.alerts.length>4) this.alerts.pop();
+    this.unread++;
+    this.toast = a; this.toastT = Date.now();
+  }
+  step(){
+    this.tickN++;
+    if(this.toast && Date.now()-this.toastT > 5200){ this.toast = null; }
+    if(this.playing){
+      this.p += this.baseStep * this.speed;
+      if(this.p>=100){
+        if(this.holdN<16){ this.holdN++; this.p=100; }
+        else { this.p=0; this.holdN=0; this.latched=false; this.consec=0; this.initBuffers(); }
+      }
+      const sc = this.scoreAt(this.p);
+      this.scoreBuf.push(sc); if(this.scoreBuf.length>70) this.scoreBuf.shift();
+      for(const k in this.SENS){ this.sBuf[k].push(this.sensorVal(this.SENS[k],this.p)); if(this.sBuf[k].length>70) this.sBuf[k].shift(); }
+      if(sc>=this.threshold) this.consec++; else this.consec=0;
+      if(!this.latched && this.consec>=3){ this.latched=true; this.fireAlert(sc); }
+    }
+    this.forceUpdate();
+  }
+
+  setSpeed(s){ this.speed=s; }
+  jump(scn){ this.scenario=scn; this.initBuffers(); this.p=48; this.latched=false; this.consec=0; this.holdN=0; this.playing=true; this.toast=null; }
+
+  // ---- chart builder ----
+  chart(buf,o){
+    const h=React.createElement, W=o.w, H=o.h, min=o.min, max=o.max, n=buf.length;
+    const X=i=> n<2?0:(i/(n-1))*W;
+    const Y=v=> H-((this.clamp(v,min,max)-min)/(max-min))*H;
+    let line='';
+    buf.forEach((v,i)=>{ line+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' '; });
+    const area = line+'L '+W+' '+H+' L 0 '+H+' Z';
+    const kids=[];
+    if(o.big){ [0.25,0.5,0.75].forEach((g,k)=> kids.push(h('line',{key:'g'+k,x1:0,x2:W,y1:H*(1-g),y2:H*(1-g),stroke:'#39414C',strokeWidth:1,strokeDasharray:'2 5',opacity:0.5,vectorEffect:'non-scaling-stroke'}))); }
+    if(o.threshold!=null){ const ty=H-((o.threshold-min)/(max-min))*H; kids.push(h('rect',{key:'dz',x:0,y:0,width:W,height:Math.max(0,ty),fill:'rgba(190,80,52,.07)'})); }
+    kids.push(h('path',{key:'a',d:area,fill:o.col,fillOpacity:o.big?0.15:0.13,stroke:'none'}));
+    kids.push(h('path',{key:'l',d:line,fill:'none',stroke:o.col,strokeWidth:o.big?2.2:1.8,strokeLinejoin:'round',strokeLinecap:'round',vectorEffect:'non-scaling-stroke'}));
+    if(o.threshold!=null){ const ty=H-((o.threshold-min)/(max-min))*H; kids.push(h('line',{key:'t',x1:0,x2:W,y1:ty,y2:ty,stroke:'#CB5B3C',strokeWidth:1.5,strokeDasharray:'6 4',vectorEffect:'non-scaling-stroke'})); }
+    if(n>=2){ kids.push(h('circle',{key:'d',cx:X(n-1),cy:Y(buf[n-1]),r:o.big?4:3,fill:o.col,stroke:'#1B2027',strokeWidth:2})); }
+    return h('svg',{viewBox:'0 0 '+W+' '+H,preserveAspectRatio:'none',width:'100%',height:'100%',style:{display:'block',overflow:'visible'}},kids);
+  }
+
+  renderVals(){
+    const C={olive:'#AEBC74',oliveSolid:'#7b8a43',oliveBg:'rgba(123,138,67,.14)',oliveBd:'rgba(123,138,67,.4)',oliveText:'#C6D196',
+      ochre:'#D9A94A',ochreSolid:'#C2913A',ochreBg:'rgba(201,154,63,.16)',ochreBd:'rgba(201,154,63,.42)',ochreText:'#E4C281',
+      rust:'#CB5B3C',rustSolid:'#B14A30',rustBg:'rgba(190,80,52,.16)',rustBd:'rgba(190,80,52,.45)',rustText:'#E0987F',
+      cream:'#DFD0B8',taupe:'#948979'};
+    const p=this.p;
+    const sc=this.scoreBuf.length?this.scoreBuf[this.scoreBuf.length-1]:0;
+    const phase = this.latched ? (p>=84?'FAILURE':'ANOMALY') : (p>=42?'DRIFT':'NORMAL');
+    const phaseCol = phase==='NORMAL'?C.olive : phase==='DRIFT'?C.ochre : C.rust;
+    const scoreCol = sc>=0.65?C.rust : sc>=0.5?C.ochre : C.olive;
+    const isAnom = phase==='ANOMALY'||phase==='FAILURE';
+
+    // sim bar
+    const seg=(active)=>({padding:'7px 13px',borderRadius:8,border:'1px solid '+(active?C.cream:'#3a414c'),background:active?C.cream:'transparent',color:active?'#1B2027':'#948979',fontFamily:'Poppins',fontSize:12,fontWeight:600,letterSpacing:'.03em',cursor:'pointer'});
+    const phaseTag = phase==='NORMAL'?{background:C.oliveBg,color:C.oliveText} : phase==='DRIFT'?{background:C.ochreBg,color:C.ochreText} : {background:C.rustBg,color:C.rustText};
+
+    // status badge
+    const badgeCol = isAnom?C.rust : (phase==='DRIFT'?C.ochre:C.olive);
+    const badgeBg = isAnom?C.rustBg : (phase==='DRIFT'?C.ochreBg:C.oliveBg);
+    const badgeBd = isAnom?C.rustBd : (phase==='DRIFT'?C.ochreBd:C.oliveBd);
+    const statusLabel = isAnom?'ANOMALY':'NORMAL';
+    const subMap={NORMAL:'All systems nominal — within learned envelope.',DRIFT:'Pressure channels drifting from baseline. Monitoring.',ANOMALY:'Isolation Forest threshold breached — failure suspected.',FAILURE:'Imminent failure — RUL critical. Dispatch required.'};
+
+    // sensors
+    const sensors = Object.keys(this.SENS).map(k=>{
+      const c=this.SENS[k], buf=this.sBuf[k], v=buf.length?buf[buf.length-1]:c.normal;
+      const half=buf.slice(0,Math.floor(buf.length/2)); const avg0=half.length?half.reduce((a,b)=>a+b,0)/half.length:v;
+      const d=v-avg0; const rising=d>(c.ampN*0.8);
+      const trendStyle = rising&&isAnom?{background:C.rustBg,color:C.rustText} : rising&&phase==='DRIFT'?{background:C.ochreBg,color:C.ochreText} : {background:'rgba(148,137,121,.13)',color:'#a59c8c'};
+      const trendText = rising? '▲ '+(d>0?'+':'')+d.toFixed(2) : (Math.abs(d)<c.ampN?'● stable':'▼ '+d.toFixed(2));
+      return {label:c.label,unit:c.unit,valueText:v.toFixed(c.dec),trendStyle,trendText,chart:this.chart(buf,{w:240,h:50,min:c.min,max:c.max,col:phaseCol})};
+    });
+
+    // classifier
+    let clf;
+    if(!isAnom) clf={verdict:'NORMAL',col:C.olive,box:C.oliveBg,bd:C.oliveBd,probs:[['normal',0.93],['F1',0.02],['F2',0.02],['F3',0.03]],top:'normal',note:'High confidence · 0.93 ≥ 0.60 gate. No failure pattern.',noteBg:C.oliveBg,noteCol:C.oliveText,unknown:false};
+    else if(this.scenario==='F4') clf={verdict:'UNKNOWN',col:C.rust,box:C.rustBg,bd:C.rustBd,probs:[['normal',0.19],['F1',0.18],['F2',0.21],['F3',0.41]],top:'F3',note:'Max conf 0.41 < 0.60 → flagged NOVEL. Resembles F3 but unseen — caught by Isolation Forest, not the classifier.',noteBg:C.rustBg,noteCol:C.rustText,unknown:true};
+    else clf={verdict:'F3',col:C.ochre,box:C.ochreBg,bd:C.ochreBd,probs:[['normal',0.03],['F1',0.03],['F2',0.06],['F3',0.88]],top:'F3',note:'Confidence 0.88 ≥ 0.60 → known failure type F3 (pressure family).',noteBg:C.ochreBg,noteCol:C.ochreText,unknown:false};
+    const clfRows = clf.probs.map(([label,pr])=>({label,pctText:Math.round(pr*100)+'%',rowStyle:{opacity:label===clf.top?1:0.55},barStyle:{width:Math.round(pr*100)+'%',background:label===clf.top?clf.col:C.taupe}}));
+
+    // rul
+    const rul=this.rulAt(p);
+    const rulZoneTxt = p<42?'NOMINAL' : p<74?'DEGRADATION' : 'CRITICAL';
+    const rulCol = rul>48?C.olive : rul>=12?C.ochre : C.rust;
+    const rulZoneStyle = rul>48?{background:C.oliveBg,color:C.oliveText} : rul>=12?{background:C.ochreBg,color:C.ochreText} : {background:C.rustBg,color:C.rustText};
+
+    // fault chips
+    const faultChips=[{name:'TP2',pct:'0.71',w:'88%'},{name:'H1',pct:'0.54',w:'67%'},{name:'DV_pressure',pct:'0.39',w:'48%'}].map(f=>({name:f.name,pct:f.pct,barStyle:{width:f.w}}));
+
+    // alerts view
+    const sevStyle={background:C.rustBg,color:C.rustText,border:'1px solid '+C.rustBd};
+    const stStyle=(s)=> s==='NEW'?{background:C.rustBg,color:C.rustText} : s==='ACKNOWLEDGED'?{background:C.ochreBg,color:C.ochreText} : {background:C.oliveBg,color:C.oliveText};
+    const alerts=this.alerts.map(a=>({
+      id:a.id, sevLabel:'CRITICAL', sevStyle,
+      title:(a.scen==='F4'?'Novel Pressure Fault':'F3 Pressure Fault')+' — TP2, H1',
+      timeText:this.fmtDate(a.dateObj),
+      actionText:'Inspect pneumatic circuit for air leaks (valves, seals, piping). '+(a.scen==='F4'?'Type unconfirmed by classifier.':'Matches known F3 signature.'),
+      scoreText:a.score.toFixed(2),
+      statusLabel:a.status, statusStyle:stStyle(a.status),
+      showAck:a.status==='NEW', showResolve:a.status!=='RESOLVED',
+      onAck:()=>{a.status='ACKNOWLEDGED';this.forceUpdate();},
+      onResolve:()=>{a.status='RESOLVED';this.forceUpdate();},
+    }));
+
+    return {
+      modelLine:'IF v1.0 · LSTM v1.0 · XGB v1.0',
+      unread:this.unread, unreadShow:this.unread>0,
+      playGlyph:this.playing?'pause':'play_arrow', playLabel:this.playing?'PAUSE':'PLAY',
+      onPlay:()=>{this.playing=!this.playing;}, onReset:()=>{this.initBuffers();this.p=0;this.latched=false;this.consec=0;this.holdN=0;this.toast=null;this.playing=true;},
+      spd05Style:seg(this.speed===0.5),spd1Style:seg(this.speed===1),spd2Style:seg(this.speed===2),spd4Style:seg(this.speed===4),
+      onSpd05:()=>this.setSpeed(0.5),onSpd1:()=>this.setSpeed(1),onSpd2:()=>this.setSpeed(2),onSpd4:()=>this.setSpeed(4),
+      jumpF3Style:Object.assign(seg(this.scenario==='F3'),{borderColor:this.scenario==='F3'?C.cream:'#3a414c'}),
+      jumpF4Style:Object.assign(seg(this.scenario==='F4'),{borderColor:this.scenario==='F4'?C.cream:'#3a414c'}),
+      onJumpF3:()=>this.jump('F3'),onJumpF4:()=>this.jump('F4'),
+      phaseLabel:phase, phaseTagStyle:phaseTag, progressStyle:{width:this.clamp(p,0,100)+'%',background:phaseCol},
+      simDateLabel:this.fmtDate(this.simDate()),
+
+      anomalyPanelStyle:isAnom?{boxShadow:'0 0 0 1px rgba(190,80,52,.25), 0 14px 40px rgba(190,80,52,.12)'}:{},
+      driftShow:phase==='DRIFT',
+      statusBadgeStyle:{background:badgeBg,border:'1px solid '+badgeBd},
+      statusDotStyle:{background:badgeCol, boxShadow:'0 0 10px '+badgeCol},
+      statusLabel, statusLabelStyle:{color:badgeCol}, statusSub:subMap[phase],
+      scoreText:sc.toFixed(2), scoreNumStyle:{color:scoreCol},
+      anomalyChart:this.chart(this.scoreBuf,{w:480,h:170,min:0,max:1,col:scoreCol,threshold:0.65,big:true}),
+
+      clfVerdict:clf.verdict, clfVerdictStyle:{color:clf.col}, clfVerdictBox:{background:clf.box,border:'1px solid '+clf.bd},
+      clfRows, clfNote:clf.note, clfNoteStyle:{background:clf.noteBg,color:clf.noteCol,border:'1px solid '+(clf.unknown?C.rustBd:'transparent')},
+
+      rulText:Math.round(rul).toString(), rulNumStyle:{color:rulCol}, rulZone:rulZoneTxt, rulZoneStyle,
+      rulBarStyle:{width:this.clamp(rul/168*100,2,100)+'%',background:rulCol}, rulMae:'±21.6h',
+
+      showFault:isAnom, faultType:'Pressure', faultChips,
+      faultAction:'Inspect pneumatic circuit for air leaks — valves, seals, piping.',
+
+      showToast:!!this.toast,
+      toastTitle:(this.toast&&this.toast.scen==='F4')?'Novel anomaly detected':'Anomaly detected',
+      toastTime:this.toast?this.fmtDate(this.toast.dateObj):'',
+      toastSub:'Isolation Forest score breached threshold. Critical alert auto-created and routed to technicians.',
+
+      sensors, alerts, emptyAlertsShow:this.alerts.length===0,
+    };
+  }
+}
+</script>
+</body>
+</html>

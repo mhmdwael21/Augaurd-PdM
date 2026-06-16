@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+    <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#1B2027;font-family:'Satoshi',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    input{outline:none}
+    input::placeholder{color:#5d5850}
+    @keyframes scblink{0%,100%{opacity:1}50%{opacity:.25}}
+    @keyframes scin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes scpop{0%{opacity:0;transform:scale(.6)}60%{transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+    @keyframes scspin{to{transform:rotate(360deg)}}
+      h1,h2,h3,h4,h5{font-family:'Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif,system-ui,sans-serif!important}
+    </style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px;background:radial-gradient(1100px 600px at 75% -5%, #2a3140 0%, #1B2027 58%);color:#DFD0B8">
+  <div style="width:100%;max-width:1040px;display:grid;grid-template-columns:1fr 1fr;background:#222831;border:1px solid #333b45;border-radius:22px;overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.5)">
+
+    <!-- ── BRAND PANEL ── -->
+    <div style="position:relative;padding:38px 38px 32px;display:flex;flex-direction:column;justify-content:space-between;gap:30px;background:linear-gradient(160deg,#2b313c 0%,#23282f 60%,#20252d 100%);border-right:1px solid #333b45;min-height:600px">
+      <div style="display:flex;align-items:center;gap:13px">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(150deg,#948979,#DFD0B8);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.35)">
+          <span style="font-family:'Satoshi';font-weight:800;font-size:21px;color:#1B2027">A</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <div style="font-family:'Satoshi';font-weight:800;font-size:19px;letter-spacing:-.01em;color:#DFD0B8">Auguard</div>
+          <div style="font-family:'Satoshi';font-size:9.5px;letter-spacing:.22em;color:#7c756a;text-transform:uppercase">Predictive Maintenance</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <h1 style="font-family:'Satoshi';font-weight:800;font-size:32px;line-height:1.12;letter-spacing:-.02em;color:#DFD0B8;text-wrap:balance">Catch air-compressor failures before they happen.</h1>
+        <p style="font-family:'Satoshi';font-size:14px;line-height:1.55;color:#a59c8c;max-width:330px">Real-time anomaly detection, fault localization and remaining-useful-life forecasting for the Porto Metro APU fleet.</p>
+        <div style="display:flex;flex-direction:column;gap:13px;margin-top:6px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:9px;height:9px;border-radius:50%;background:#AEBC74;box-shadow:0 0 10px #AEBC74"></span>
+            <span style="font-family:'Satoshi';font-size:12px;color:#cabfa6">Isolation Forest · <span style="color:#7c756a">99.5% failure recall</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:9px;height:9px;border-radius:50%;background:#D9A94A;box-shadow:0 0 10px #D9A94A"></span>
+            <span style="font-family:'Satoshi';font-size:12px;color:#cabfa6">LSTM-AE · <span style="color:#7c756a">fault localization</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="width:9px;height:9px;border-radius:50%;background:#948979;box-shadow:0 0 10px #948979"></span>
+            <span style="font-family:'Satoshi';font-size:12px;color:#cabfa6">LightGBM · <span style="color:#7c756a">RUL forecast, MAE ±21.6h</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="height:44px;opacity:.85">{{ decoChart }}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#CB5B3C;animation:scblink 1.4s infinite"></span>
+          <span style="font-family:'Satoshi';font-size:10px;letter-spacing:.14em;color:#7c756a;text-transform:uppercase">Live monitoring · MetroPT-3 dataset</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FORM PANEL ── -->
+    <div style="padding:38px 40px;display:flex;flex-direction:column;justify-content:center;min-height:600px">
+
+      <sc-if value="{{ done }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:18px;animation:scin .4s ease both">
+          <div style="width:74px;height:74px;border-radius:50%;background:rgba(123,138,67,.16);border:1px solid rgba(123,138,67,.45);display:flex;align-items:center;justify-content:center;animation:scpop .5s ease both">
+            <span style="font-family:'Satoshi';font-size:38px;color:#AEBC74;line-height:1">✓</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <h2 style="font-family:'Satoshi';font-weight:800;font-size:25px;color:#DFD0B8">{{ doneTitle }}</h2>
+            <p style="font-family:'Satoshi';font-size:13.5px;color:#a59c8c;line-height:1.5;max-width:320px">{{ doneSub }}</p>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:#1B2027;border:1px solid #333b45">
+            <span style="font-family:'Satoshi';font-size:10px;letter-spacing:.14em;color:#7c756a">ROLE</span>
+            <span style="font-family:'Satoshi';font-size:11.5px;font-weight:600;color:#DFD0B8;text-transform:uppercase">{{ doneRole }}</span>
+          </div>
+          <a href="Dashboard.dc.html" style="margin-top:6px;width:100%;max-width:300px;display:flex;align-items:center;justify-content:center;gap:9px;padding:14px;border-radius:11px;background:#DFD0B8;color:#1B2027;font-family:'Satoshi';font-weight:700;font-size:14.5px;text-decoration:none">Open live dashboard →</a>
+          <button onClick="{{ onReset }}" style="background:none;border:none;cursor:pointer;font-family:'Satoshi';font-size:12.5px;color:#948979;text-decoration:underline;text-underline-offset:3px">Use a different account</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ formShow }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:22px">
+          <!-- tab toggle -->
+          <div style="display:flex;gap:5px;padding:5px;background:#1B2027;border:1px solid #333b45;border-radius:12px">
+            <button onClick="{{ onTabLogin }}" style="{{ tabLoginStyle }}">Sign in</button>
+            <button onClick="{{ onTabReg }}" style="{{ tabRegStyle }}">Create account</button>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <h2 style="font-family:'Satoshi';font-weight:800;font-size:23px;letter-spacing:-.01em;color:#DFD0B8">{{ title }}</h2>
+            <p style="font-family:'Satoshi';font-size:13px;color:#948979">{{ subtitle }}</p>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:15px">
+            <!-- username -->
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="font-family:'Satoshi';font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;{{ userLabelStyle }}">Username</label>
+              <input value="{{ username }}" onChange="{{ onUser }}" onBlur="{{ onUserBlur }}" placeholder="e.g. m.wael" autocomplete="username" style="width:100%;padding:13px 14px;border-radius:10px;border:1px solid #3a414c;background:#1B2027;color:#DFD0B8;font-family:'Satoshi';font-size:14px" style-focus="border-color:#948979;box-shadow:0 0 0 3px rgba(148,137,121,.14)">
+              <sc-if value="{{ userErrShow }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Satoshi';font-size:10.5px;color:#E0987F">{{ userErr }}</span></sc-if>
+            </div>
+
+            <!-- email (register only) -->
+            <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <label style="font-family:'Satoshi';font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;{{ emailLabelStyle }}">Email</label>
+                <input value="{{ email }}" onChange="{{ onEmail }}" onBlur="{{ onEmailBlur }}" type="email" placeholder="you@metro.pt" autocomplete="email" style="width:100%;padding:13px 14px;border-radius:10px;border:1px solid #3a414c;background:#1B2027;color:#DFD0B8;font-family:'Satoshi';font-size:14px" style-focus="border-color:#948979;box-shadow:0 0 0 3px rgba(148,137,121,.14)">
+                <sc-if value="{{ emailErrShow }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Satoshi';font-size:10.5px;color:#E0987F">{{ emailErr }}</span></sc-if>
+              </div>
+            </sc-if>
+
+            <!-- password -->
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <label style="font-family:'Satoshi';font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;{{ pwLabelStyle }}">Password</label>
+                <button onClick="{{ onTogglePw }}" style="background:none;border:none;cursor:pointer;font-family:'Satoshi';font-size:10.5px;color:#948979;letter-spacing:.06em">{{ pwToggleLabel }}</button>
+              </div>
+              <input value="{{ password }}" onChange="{{ onPw }}" onBlur="{{ onPwBlur }}" type="{{ pwType }}" placeholder="At least 6 characters" autocomplete="{{ pwAutocomplete }}" style="width:100%;padding:13px 14px;border-radius:10px;border:1px solid #3a414c;background:#1B2027;color:#DFD0B8;font-family:'Satoshi';font-size:14px" style-focus="border-color:#948979;box-shadow:0 0 0 3px rgba(148,137,121,.14)">
+              <sc-if value="{{ pwErrShow }}" hint-placeholder-val="{{ false }}"><span style="font-family:'Satoshi';font-size:10.5px;color:#E0987F">{{ pwErr }}</span></sc-if>
+            </div>
+
+            <!-- role (register only) -->
+            <sc-if value="{{ isRegister }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <label style="font-family:'Satoshi';font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#948979">Role</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                  <sc-for list="{{ roles }}" as="r" hint-placeholder-count="3">
+                    <button onClick="{{ r.onClick }}" style="{{ r.style }}">
+                      <span style="font-family:'Satoshi';font-weight:600;font-size:13px">{{ r.label }}</span>
+                      <span style="font-family:'Satoshi';font-size:9px;letter-spacing:.04em;{{ r.descStyle }}">{{ r.desc }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <!-- demo quick-fill (login only) -->
+          <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+              <span style="font-family:'Satoshi';font-size:10px;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">Demo</span>
+              <sc-for list="{{ demoChips }}" as="d" hint-placeholder-count="3">
+                <button onClick="{{ d.onClick }}" style="padding:5px 11px;border-radius:999px;border:1px solid #333b45;background:#1B2027;color:#cabfa6;font-family:'Satoshi';font-size:10.5px;cursor:pointer">{{ d.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <button onClick="{{ onSubmit }}" style="{{ submitStyle }}">
+            <sc-if value="{{ submitting }}" hint-placeholder-val="{{ false }}"><span style="width:15px;height:15px;border:2px solid rgba(27,32,39,.35);border-top-color:#1B2027;border-radius:50%;display:inline-block;animation:scspin .7s linear infinite"></span></sc-if>
+            <span>{{ submitLabel }}</span>
+          </button>
+
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Satoshi';font-size:13px;color:#948979">
+            <span>{{ switchPrompt }}</span>
+            <button onClick="{{ onSwitch }}" style="background:none;border:none;cursor:pointer;font-family:'Satoshi';font-weight:600;font-size:13px;color:#DFD0B8;text-decoration:underline;text-underline-offset:3px">{{ switchAction }}</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = { mode:'login', username:'', email:'', password:'', role:'operator',
+      showPw:false, touched:{}, submitting:false, done:false };
+    this.decoBuf = [];
+  }
+  componentDidMount(){
+    for(let i=0;i<46;i++) this.decoBuf.push(this.decoVal(i));
+    this.k=46;
+    this.timer = setInterval(()=>{ this.decoBuf.push(this.decoVal(this.k++)); if(this.decoBuf.length>46) this.decoBuf.shift(); this.forceUpdate(); }, 190);
+  }
+  componentWillUnmount(){ clearInterval(this.timer); }
+  decoVal(i){ return 0.5 + 0.32*Math.sin(i*0.45) + 0.12*Math.sin(i*1.7) + (Math.random()-0.5)*0.06; }
+
+  validate(){
+    const e={}; const {username,email,password,mode}=this.state;
+    if(!username.trim()) e.username='Username is required.';
+    else if(username.trim().length<3) e.username='Must be at least 3 characters.';
+    else if(username.trim().length>50) e.username='Must be 50 characters or fewer.';
+    if(mode==='register'){
+      if(!email.trim()) e.email='Email is required.';
+      else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) e.email='Enter a valid email address.';
+    }
+    if(!password) e.password='Password is required.';
+    else if(password.length<6) e.password='Must be at least 6 characters.';
+    return e;
+  }
+  set(k,v){ this.setState({[k]:v}); }
+  blur(k){ this.setState(s=>({touched:Object.assign({},s.touched,{[k]:true})})); }
+  switchMode(m){ this.setState({mode:m, touched:{}, submitting:false}); }
+  submit(){
+    const e=this.validate();
+    if(Object.keys(e).length){ this.setState({touched:{username:true,email:true,password:true}}); return; }
+    this.setState({submitting:true});
+    setTimeout(()=>{ this.setState({submitting:false, done:true}); }, 950);
+  }
+
+  chart(buf){
+    const h=React.createElement, W=240, H=44, n=buf.length;
+    const X=i=> n<2?0:(i/(n-1))*W, Y=v=> H-this.clampn(v)*H;
+    let line=''; buf.forEach((v,i)=>{ line+=(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' '; });
+    const area=line+'L '+W+' '+H+' L 0 '+H+' Z';
+    return h('svg',{viewBox:'0 0 '+W+' '+H,preserveAspectRatio:'none',width:'100%',height:'100%',style:{display:'block',overflow:'visible'}},[
+      h('path',{key:'a',d:area,fill:'#948979',fillOpacity:0.12}),
+      h('path',{key:'l',d:line,fill:'none',stroke:'#948979',strokeWidth:1.6,strokeLinejoin:'round',vectorEffect:'non-scaling-stroke'}),
+      n>=2?h('circle',{key:'d',cx:X(n-1),cy:Y(buf[n-1]),r:2.6,fill:'#DFD0B8'}):null,
+    ]);
+  }
+  clampn(v){ return v<0.05?0.05:(v>0.95?0.95:v); }
+
+  renderVals(){
+    const C={cream:'#DFD0B8',taupe:'#948979',rust:'#E0987F'};
+    const s=this.state, isReg=s.mode==='register', isLogin=s.mode==='login';
+    const err=this.validate();
+    const showErr=(k)=> !!(s.touched[k] && err[k]);
+
+    const tab=(active)=>({flex:1,padding:'10px',borderRadius:8,border:'none',cursor:'pointer',
+      background:active?C.cream:'transparent',color:active?'#1B2027':'#948979',
+      fontFamily:'Poppins',fontWeight:active?700:600,fontSize:13.5,letterSpacing:'.01em'});
+
+    const roleDefs=[['operator','Operator','read-only'],['technician','Technician','act on alerts'],['admin','Admin','full access']];
+    const roles=roleDefs.map(([key,label,desc])=>{
+      const active=s.role===key;
+      return {label,desc,onClick:()=>this.set('role',key),
+        descStyle:{color:active?'#9c917f':'#6f6a60'},
+        style:{display:'flex',flexDirection:'column',alignItems:'flex-start',gap:3,padding:'11px 12px',borderRadius:10,cursor:'pointer',textAlign:'left',
+          border:'1px solid '+(active?'rgba(223,208,184,.55)':'#3a414c'),
+          background:active?'rgba(223,208,184,.08)':'#1B2027',
+          color:active?C.cream:'#a59c8c'}};
+    });
+
+    const demo=[['admin','admin123'],['technician','tech123'],['operator','op123']];
+    const demoChips=demo.map(([u,p])=>({label:u, onClick:()=>this.setState({username:u,password:p,role:u==='admin'?'admin':u,touched:{}})}));
+
+    const submitBase={width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:9,padding:'14px',borderRadius:11,border:'none',
+      background:C.cream,color:'#1B2027',fontFamily:'Poppins',fontWeight:700,fontSize:14.5,cursor:s.submitting?'default':'pointer',
+      opacity:s.submitting?0.7:1,letterSpacing:'.01em'};
+
+    return {
+      done:s.done, formShow:!s.done,
+      doneTitle: isLogin?'Welcome back':'Account created',
+      doneSub: isLogin?('Signed in as '+(s.username||'user')+'. Your live monitoring session is ready.'):('Account for '+(s.username||'user')+' is ready. You can open the dashboard now.'),
+      doneRole: s.role,
+      onReset:()=>this.setState({done:false, password:'', touched:{}, submitting:false}),
+
+      isRegister:isReg, isLogin,
+      tabLoginStyle:tab(isLogin), tabRegStyle:tab(isReg),
+      onTabLogin:()=>this.switchMode('login'), onTabReg:()=>this.switchMode('register'),
+
+      title: isLogin?'Sign in to Auguard':'Create your account',
+      subtitle: isLogin?'Access the predictive-maintenance console.':'Set up access for the monitoring console.',
+
+      username:s.username, email:s.email, password:s.password,
+      onUser:(e)=>this.set('username',e.target.value), onUserBlur:()=>this.blur('username'),
+      onEmail:(e)=>this.set('email',e.target.value), onEmailBlur:()=>this.blur('email'),
+      onPw:(e)=>this.set('password',e.target.value), onPwBlur:()=>this.blur('password'),
+      pwType:s.showPw?'text':'password', pwToggleLabel:s.showPw?'HIDE':'SHOW', onTogglePw:()=>this.set('showPw',!s.showPw),
+      pwAutocomplete:isLogin?'current-password':'new-password',
+
+      userLabelStyle:{color:showErr('username')?C.rust:C.taupe},
+      emailLabelStyle:{color:showErr('email')?C.rust:C.taupe},
+      pwLabelStyle:{color:showErr('password')?C.rust:C.taupe},
+      userErr:err.username, userErrShow:showErr('username'),
+      emailErr:err.email, emailErrShow:showErr('email'),
+      pwErr:err.password, pwErrShow:showErr('password'),
+
+      roles, demoChips,
+
+      submitStyle:submitBase, submitting:s.submitting,
+      submitLabel: s.submitting?(isLogin?'Signing in…':'Creating account…'):(isLogin?'Sign in':'Create account'),
+
+      switchPrompt: isLogin?'New to Auguard?':'Already have an account?',
+      switchAction: isLogin?'Create one':'Sign in',
+      onSwitch:()=>this.switchMode(isLogin?'register':'login'),
+
+      decoChart:this.chart(this.decoBuf),
+    };
+  }
+}
+</script>
+</body>
+</html>

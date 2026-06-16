@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auguard · PdM</title>
+    <link rel="preconnect" href="https://api.fontshare.com">
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      body {
+        background: #1B2027;
+        font-family: 'Satoshi', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        color: #DFD0B8;
+      }
+      h1, h2, h3, h4, h5 {
+        font-family: 'Neue Haas Grotesk Display Pro', 'Neue Haas Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+      }
+      a { text-decoration: none; }
+      ::-webkit-scrollbar { width: 9px; height: 9px; }
+      ::-webkit-scrollbar-thumb { background: #393E46; border-radius: 6px; }
+      ::-webkit-scrollbar-track { background: #1B2027; }
+      input, select, textarea { font-family: inherit; outline: none; }
+      input::placeholder, textarea::placeholder { color: #5d5850; }
+
+      @keyframes scblink { 0%,100%{opacity:1} 50%{opacity:.25} }
+      @keyframes scfloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
+      @keyframes scpulseR { 0%{box-shadow:0 0 0 0 rgba(203,91,60,.5)} 70%{box-shadow:0 0 0 16px rgba(203,91,60,0)} 100%{box-shadow:0 0 0 0 rgba(203,91,60,0)} }
+      @keyframes scpulse { 0%{box-shadow:0 0 0 0 rgba(203,91,60,.45)} 70%{box-shadow:0 0 0 12px rgba(203,91,60,0)} 100%{box-shadow:0 0 0 0 rgba(203,91,60,0)} }
+      @keyframes scspin { to{transform:rotate(360deg)} }
+      @keyframes scin { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+      @keyframes sctoast { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+      @keyframes scpop { 0%{opacity:0;transform:scale(.6)} 60%{transform:scale(1.08)} 100%{opacity:1;transform:scale(1)} }
+      @keyframes scpop2 { 0%{opacity:0;transform:scale(.92)} 100%{opacity:1;transform:scale(1)} }
+      @keyframes scslide { from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)} }
+
+      .anim-in { animation: scin .25s ease both; }
+      .anim-toast { animation: sctoast .4s ease both; }
+      .anim-pop { animation: scpop2 .22s ease both; }
+      .blink { animation: scblink 1.4s infinite; }
+      .float { animation: scfloat 2.4s ease-in-out infinite; }
+      .pulse-r { animation: scpulseR 1.9s infinite; }
+      .pulse { animation: scpulse 1.9s infinite; }
+      .spin { animation: scspin .7s linear infinite; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

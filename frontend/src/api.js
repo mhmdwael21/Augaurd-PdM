@@ -1,0 +1,93 @@
+import * as mock from './mockApi.js'
+
+const DEMO = import.meta.env.VITE_DEMO_MODE === 'true'
+const API  = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+async function api(path, options = {}) {
+  const token = localStorage.getItem('auguard_token')
+  const isForm = options.body instanceof FormData  // let the browser set multipart boundary
+  const res = await fetch(API + path, {
+    ...options,
+    headers: {
+      ...(isForm ? {} : { 'Content-Type': 'application/json' }),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  })
+  if (res.status === 401) {
+    localStorage.removeItem('auguard_token')
+    localStorage.removeItem('auguard_role')
+    localStorage.removeItem('auguard_username')
+    window.location.href = '/auth'
+    throw new Error('Unauthorized')
+  }
+  if (!res.ok) {
+    const text = await res.text()
+    throw new Error(text || `HTTP ${res.status}`)
+  }
+  return res.json()
+}
+
+// Auth
+export const login = (username, password) =>
+  DEMO ? mock.mockLogin(username, password)
+       : api('/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) })
+
+export const register = (username, email, password, role) =>
+  DEMO ? mock.mockRegister(username, email, password, role)
+       : api('/auth/register', { method: 'POST', body: JSON.stringify({ username, email, password, role }) })
+
+export const getUsers = () =>
+  DEMO ? mock.mockGetUsers()
+       : api('/auth/users')
+
+// Dashboard
+export const getDashboard = () =>
+  DEMO ? mock.mockGetDashboard()
+       : api('/dashboard')
+
+// Replay controls (auth required). body: { playing?, speed?, scenario?, reset? }
+export const controlReplay = (body) =>
+  DEMO ? Promise.resolve({ ...body })
+       : api('/dashboard/replay', { method: 'POST', body: JSON.stringify(body) })
+
+// CSV upload (auth required). Multipart — api() detects FormData and skips JSON header.
+export const uploadCsv = (file) => {
+  const fd = new FormData()
+  fd.append('file', file)
+  return api('/dashboard/upload', { method: 'POST', body: fd })
+}
+
+// Alerts
+export const getAlerts = (params = {}) => {
+  if (DEMO) return mock.mockGetAlerts()
+  const qs = new URLSearchParams()
+  if (params.status)   qs.set('status',   params.status)
+  if (params.severity) qs.set('severity', params.severity)
+  const q = qs.toString()
+  return api('/alerts' + (q ? '?' + q : ''))
+}
+export const getAlert         = (id)            => api(`/alerts/${id}`)
+export const createAlert      = (body)          =>
+  DEMO ? mock.mockCreateAlert(body)
+       : api('/alerts', { method: 'POST', body: JSON.stringify(body) })
+export const assignAlert      = (id, assigned_to) =>
+  DEMO ? mock.mockAssignAlert(id, assigned_to)
+       : api(`/alerts/${id}/assign`, { method: 'PUT', body: JSON.stringify({ assigned_to }) })
+export const updateAlertStatus = (id, status)  =>
+  DEMO ? mock.mockUpdateAlertStatus(id, status)
+       : api(`/alerts/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
+export const escalateAlert    = (id)            =>
+  DEMO ? mock.mockEscalateAlert(id)
+       : api(`/alerts/${id}/escalate`, { method: 'PUT' })
+
+// Notifications
+export const getNotifications = () =>
+  DEMO ? mock.mockGetNotifications()
+       : api('/notifications')
+export const markNotifRead    = (id)   =>
+  DEMO ? mock.mockMarkNotifRead(id)
+       : api(`/notifications/${id}/read`, { method: 'PUT' })
+export const sendNotification = (body) =>
+  DEMO ? mock.mockSendNotification(body)
+       : api('/notifications', { method: 'POST', body: JSON.stringify(body) })

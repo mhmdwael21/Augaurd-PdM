@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+    <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#1B2027;font-family:'Satoshi',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    input,select,textarea{font-family:inherit;outline:none}
+    input::placeholder,textarea::placeholder{color:#5d5850}
+    ::-webkit-scrollbar{width:7px}
+    ::-webkit-scrollbar-thumb{background:#393E46;border-radius:6px}
+    @keyframes scin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes scpulse{0%{box-shadow:0 0 0 0 rgba(203,91,60,.5)}70%{box-shadow:0 0 0 10px rgba(203,91,60,0)}100%{box-shadow:0 0 0 0 rgba(203,91,60,0)}}
+    @keyframes scblink{0%,100%{opacity:1}50%{opacity:.25}}
+    @keyframes scspin{to{transform:rotate(360deg)}}
+    @keyframes scslide{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+      h1,h2,h3,h4,h5{font-family:'Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif,system-ui,sans-serif!important}
+    </style>
+</helmet>
+
+<div style="min-height:100vh;background:#1B2027;color:#DFD0B8">
+
+  <!-- TOP BAR -->
+  <div style="position:sticky;top:0;z-index:40;background:rgba(27,32,39,.92);backdrop-filter:blur(12px);border-bottom:1px solid #333b45;padding:0 28px">
+    <div style="max-width:1440px;margin:0 auto;height:58px;display:flex;align-items:center;justify-content:space-between;gap:20px">
+      <div style="display:flex;align-items:center;gap:18px">
+        <div style="display:flex;align-items:center;gap:11px">
+          <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(150deg,#948979,#DFD0B8);display:flex;align-items:center;justify-content:center">
+            <span style="font-weight:800;font-size:17px;color:#1B2027">A</span>
+          </div>
+          <span style="font-weight:700;font-size:16px;color:#DFD0B8">Auguard<span style="color:#948979;font-weight:500"> · PdM</span></span>
+        </div>
+        <div style="width:1px;height:22px;background:#333b45"></div>
+        <nav style="display:flex;gap:4px">
+          <a href="Dashboard.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none;background:transparent">Dashboard</a>
+          <span style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:600;color:#DFD0B8;background:#393E46;cursor:default">Alerts</span>
+          <a href="Notifications.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Notifications</a>
+          <a href="Users.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Users</a>
+        </nav>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid #333b45;border-radius:999px;background:#222831">
+          <span style="width:7px;height:7px;border-radius:50%;background:#CB5B3C;animation:scblink 1.4s infinite"></span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:.12em;color:#DFD0B8">LIVE</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;padding:5px 11px 5px 5px;border:1px solid #333b45;border-radius:999px;background:#222831">
+          <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(150deg,#393E46,#948979);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#DFD0B8">MW</span>
+          <div style="display:flex;flex-direction:column;line-height:1.2">
+            <span style="font-size:12px;font-weight:600;color:#DFD0B8">Mohamed W.</span>
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:.1em;color:#7b8a43">ADMIN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1440px;margin:0 auto;padding:26px 28px 48px;display:flex;gap:22px">
+
+    <!-- MAIN COLUMN -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:18px">
+
+      <!-- PAGE HEADER -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <h1 style="font-size:24px;font-weight:700;letter-spacing:-.01em;color:#DFD0B8">Alert Management</h1>
+          <p style="font-size:13px;color:#948979">Monitor, assign, and resolve AI-generated predictive-maintenance alerts.</p>
+        </div>
+        <button onClick="{{ onCreateOpen }}" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;border:none;background:#DFD0B8;color:#1B2027;font-family:'Satoshi';font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap">
+          <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:18px;color:#1B2027">add</span> Create Alert
+        </button>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <sc-for list="{{ statCards }}" as="s" hint-placeholder-count="4">
+          <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;{{ s.extraStyle }}">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:11.5px;font-weight:500;color:#948979;letter-spacing:.04em">{{ s.label }}</span>
+              <span style="font-size:18px">{{ s.icon }}</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <span style="font-size:32px;font-weight:700;{{ s.numStyle }}">{{ s.count }}</span>
+              <span style="font-size:11px;color:#6f6a60">alerts</span>
+            </div>
+            <div style="height:3px;border-radius:999px;background:#1B2027;overflow:hidden"><div style="height:100%;border-radius:999px;{{ s.barStyle }}"></div></div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- FILTERS -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px;display:flex;align-items:center;gap:9px;padding:9px 13px;background:#1B2027;border:1px solid #333b45;border-radius:10px">
+          <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:16px;color:#5d5850">search</span>
+          <input value="{{ searchQ }}" onChange="{{ onSearch }}" placeholder="Search by failure type, ID, action…" style="flex:1;background:none;border:none;color:#DFD0B8;font-size:13px;font-weight:400">
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span style="font-size:11.5px;font-weight:500;color:#6f6a60;letter-spacing:.04em">STATUS</span>
+          <sc-for list="{{ statusFilters }}" as="f" hint-placeholder-count="4">
+            <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <div style="width:1px;height:22px;background:#333b45"></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span style="font-size:11.5px;font-weight:500;color:#6f6a60;letter-spacing:.04em">SEV</span>
+          <sc-for list="{{ sevFilters }}" as="f" hint-placeholder-count="5">
+            <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin-left:auto;font-size:12px;color:#6f6a60;font-weight:500">{{ filteredCount }} alerts</div>
+      </div>
+
+      <!-- ALERT LIST -->
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-if value="{{ emptyShow }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:44px;text-align:center;background:#222831;border:1px dashed #333b45;border-radius:14px;color:#6f6a60;font-size:13px">No alerts match your current filters.</div>
+        </sc-if>
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+          <div onClick="{{ r.onExpand }}" style="background:#222831;border:1px solid {{ r.borderCol }};border-radius:14px;overflow:hidden;cursor:pointer;animation:scin .25s ease both;transition:border-color .15s">
+            <!-- SUMMARY ROW -->
+            <div style="padding:15px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+              <span style="font-size:11px;font-weight:700;letter-spacing:.1em;padding:5px 10px;border-radius:7px;white-space:nowrap;{{ r.sevStyle }}">{{ r.sevLabel }}</span>
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:180px">
+                <span style="font-size:13.5px;font-weight:600;color:#DFD0B8;line-height:1.3">{{ r.failureText }}</span>
+                <span style="font-size:11px;color:#7c756a;font-weight:400">{{ r.id }} · {{ r.timeText }}</span>
+              </div>
+              <span style="font-size:12.5px;color:#a59c8c;flex:1;min-width:140px;line-height:1.4">{{ r.actionShort }}</span>
+              <div style="display:flex;align-items:center;gap:7px">
+                <sc-if value="{{ r.showScore }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+                    <span style="font-size:9.5px;color:#6f6a60;font-weight:500;letter-spacing:.08em">SCORE</span>
+                    <span style="font-size:15px;font-weight:700;{{ r.scoreNumStyle }}">{{ r.scoreText }}</span>
+                  </div>
+                </sc-if>
+                <span style="font-size:11px;font-weight:600;letter-spacing:.08em;padding:5px 11px;border-radius:999px;white-space:nowrap;{{ r.statusStyle }}">{{ r.statusLabel }}</span>
+                <span style="color:#6f6a60;font-size:16px;transition:transform .2s;{{ r.chevronStyle }}">›</span>
+              </div>
+            </div>
+
+            <!-- EXPANDED DETAIL -->
+            <sc-if value="{{ r.expanded }}" hint-placeholder-val="{{ false }}">
+              <div style="border-top:1px solid #2f3742;padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px;animation:scin .2s ease both" onClick="{{ r.stopProp }}">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                  <div style="display:flex;flex-direction:column;gap:3px;padding:12px 14px;background:#1B2027;border-radius:10px">
+                    <span style="font-size:10px;font-weight:500;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">Alert ID</span>
+                    <span style="font-size:12.5px;font-weight:600;color:#DFD0B8">{{ r.id }}</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:3px;padding:12px 14px;background:#1B2027;border-radius:10px">
+                    <span style="font-size:10px;font-weight:500;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">Timestamp</span>
+                    <span style="font-size:12.5px;font-weight:600;color:#DFD0B8">{{ r.timeText }}</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:3px;padding:12px 14px;background:#1B2027;border-radius:10px">
+                    <span style="font-size:10px;font-weight:500;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">Created By</span>
+                    <span style="font-size:12.5px;font-weight:600;color:#DFD0B8">{{ r.createdBy }}</span>
+                  </div>
+                </div>
+                <div style="padding:13px 15px;background:#1B2027;border-radius:10px;display:flex;flex-direction:column;gap:5px">
+                  <span style="font-size:10px;font-weight:500;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">Recommended Action</span>
+                  <span style="font-size:13px;color:#cabfa6;line-height:1.5;font-weight:400">{{ r.actionFull }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                  <sc-if value="{{ r.showAck }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ r.onAck }}" style="padding:9px 16px;border-radius:9px;border:1px solid rgba(217,169,74,.55);background:rgba(217,169,74,.1);color:#E4C281;font-family:'Satoshi';font-size:12.5px;font-weight:600;cursor:pointer">Acknowledge</button>
+                  </sc-if>
+                  <sc-if value="{{ r.showResolve }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ r.onResolve }}" style="padding:9px 16px;border-radius:9px;border:none;background:#7b8a43;color:#1B2027;font-family:'Satoshi';font-size:12.5px;font-weight:700;cursor:pointer">Mark Resolved</button>
+                  </sc-if>
+                  <sc-if value="{{ r.showEscalate }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ r.onEscalate }}" style="padding:9px 16px;border-radius:9px;border:1px solid rgba(203,91,60,.45);background:rgba(203,91,60,.1);color:#E0987F;font-family:'Satoshi';font-size:12.5px;font-weight:600;cursor:pointer">↑ Escalate to Critical</button>
+                  </sc-if>
+                  <sc-if value="{{ r.showAssignBtn }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ r.onAssignOpen }}" style="padding:9px 16px;border-radius:9px;border:1px solid #393E46;background:transparent;color:#948979;font-family:'Satoshi';font-size:12.5px;font-weight:600;cursor:pointer">Assign →</button>
+                  </sc-if>
+                  <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+                    <span style="font-size:11.5px;color:#6f6a60">Assigned to:</span>
+                    <span style="font-size:12.5px;font-weight:600;color:#DFD0B8">{{ r.assignedTo }}</span>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- RIGHT RAIL: MINI STATS -->
+    <div style="flex:0 0 280px;width:280px;display:flex;flex-direction:column;gap:14px;padding-top:4px">
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:18px 18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#948979;text-transform:uppercase">Lifecycle Breakdown</span>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ lifecycleBars }}" as="lb" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;font-weight:500;color:#cabfa6">{{ lb.label }}</span>
+                <span style="font-size:11.5px;font-weight:700;{{ lb.numStyle }}">{{ lb.n }}</span>
+              </div>
+              <div style="height:6px;border-radius:999px;background:#1B2027;overflow:hidden"><div style="height:100%;border-radius:999px;{{ lb.barStyle }}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:18px 18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#948979;text-transform:uppercase">Severity Split</span>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ sevBars }}" as="sb" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;font-weight:500;color:#cabfa6">{{ sb.label }}</span>
+                <span style="font-size:11.5px;font-weight:700;{{ sb.numStyle }}">{{ sb.n }}</span>
+              </div>
+              <div style="height:6px;border-radius:999px;background:#1B2027;overflow:hidden"><div style="height:100%;border-radius:999px;{{ sb.barStyle }}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#948979;text-transform:uppercase">API Endpoints</span>
+        <sc-for list="{{ apiRef }}" as="ep" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;background:#1B2027;border-radius:8px">
+            <span style="font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:4px;{{ ep.methodStyle }}">{{ ep.method }}</span>
+            <span style="font-size:11px;font-weight:500;color:#cabfa6">/alerts{{ ep.path }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE ALERT MODAL -->
+  <sc-if value="{{ createOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px" onClick="{{ onCreateClose }}">
+      <div style="width:min(560px,100%);background:#262C35;border:1px solid #393E46;border-radius:18px;padding:28px 30px;display:flex;flex-direction:column;gap:20px;animation:scin .25s ease both" onClick="{{ stopBubble }}">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <h2 style="font-size:18px;font-weight:700;color:#DFD0B8">Create New Alert</h2>
+            <p style="font-size:12.5px;color:#948979;margin-top:3px">POST /alerts — Admin only</p>
+          </div>
+          <button onClick="{{ onCreateClose }}" style="width:32px;height:32px;border-radius:8px;border:1px solid #393E46;background:transparent;color:#948979;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Predicted Failure *</label>
+            <input value="{{ newFailure }}" onChange="{{ onNewFailure }}" placeholder="e.g. Novel Pressure Fault — TP2, H1" style="padding:11px 13px;border-radius:9px;border:1px solid #393E46;background:#1B2027;color:#DFD0B8;font-size:13.5px;font-family:'Satoshi'">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Recommended Action *</label>
+            <textarea value="{{ newAction }}" onChange="{{ onNewAction }}" placeholder="Inspect pneumatic circuit for air leaks…" rows="3" style="padding:11px 13px;border-radius:9px;border:1px solid #393E46;background:#1B2027;color:#DFD0B8;font-size:13.5px;font-family:'Satoshi';resize:vertical"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Severity</label>
+              <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <sc-for list="{{ sevOptions }}" as="so" hint-placeholder-count="4">
+                  <button onClick="{{ so.onClick }}" style="{{ so.style }}">{{ so.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Anomaly Score</label>
+              <input value="{{ newScore }}" onChange="{{ onNewScore }}" placeholder="0.00 – 1.00" type="number" min="0" max="1" step="0.01" style="padding:11px 13px;border-radius:9px;border:1px solid #393E46;background:#1B2027;color:#DFD0B8;font-size:13.5px;font-family:'Satoshi'">
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button onClick="{{ onCreateClose }}" style="padding:10px 18px;border-radius:9px;border:1px solid #393E46;background:transparent;color:#948979;font-family:'Satoshi';font-weight:600;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ onCreateSubmit }}" style="padding:10px 20px;border-radius:9px;border:none;background:#DFD0B8;color:#1B2027;font-family:'Satoshi';font-weight:700;font-size:13px;cursor:pointer">Create Alert</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ASSIGN MODAL -->
+  <sc-if value="{{ assignOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px" onClick="{{ onAssignClose }}">
+      <div style="width:min(420px,100%);background:#262C35;border:1px solid #393E46;border-radius:18px;padding:28px 30px;display:flex;flex-direction:column;gap:18px;animation:scin .25s ease both" onClick="{{ stopBubble }}">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <h2 style="font-size:17px;font-weight:700;color:#DFD0B8">Assign Alert</h2>
+          <button onClick="{{ onAssignClose }}" style="width:32px;height:32px;border-radius:8px;border:1px solid #393E46;background:transparent;color:#948979;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+        </div>
+        <p style="font-size:12.5px;color:#948979;margin-top:-10px">PUT /alerts/{'{id}'}/assign — Admin only</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Select User</span>
+          <sc-for list="{{ assignUsers }}" as="u" hint-placeholder-count="3">
+            <button onClick="{{ u.onClick }}" style="{{ u.style }}">
+              <div style="display:flex;flex-direction:column;gap:2px;text-align:left">
+                <span style="font-size:13.5px;font-weight:600;color:#DFD0B8">{{ u.name }}</span>
+                <span style="font-size:11px;color:#948979">{{ u.roleLabel }}</span>
+              </div>
+              <sc-if value="{{ u.selected }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:16px;color:#7b8a43">✓</span>
+              </sc-if>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button onClick="{{ onAssignClose }}" style="padding:10px 18px;border-radius:9px;border:1px solid #393E46;background:transparent;color:#948979;font-family:'Satoshi';font-weight:600;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ onAssignConfirm }}" style="padding:10px 20px;border-radius:9px;border:none;background:#DFD0B8;color:#1B2027;font-family:'Satoshi';font-weight:700;font-size:13px;cursor:pointer">Confirm Assignment</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = {
+      searchQ:'', statusFilter:'all', sevFilter:'all',
+      createOpen:false, assignOpen:false, assignTargetId:null, assignUserId:null,
+      newFailure:'', newAction:'', newSev:'medium', newScore:'',
+      expanded:{},
+    };
+    this.nextId = 1043;
+    this.alerts = [
+      {id:'AL-1042',sev:'critical',status:'new',failure:'Novel Pressure Fault — TP2, H1 (F4)',action:'Inspect pneumatic circuit for air leaks (valves, seals, piping). Type unconfirmed by classifier — resembles F3 but novel pattern.',score:0.94,ts:new Date(2020,6,15,14,37,0),createdBy:'smartmetro-ai',assignedTo:null},
+      {id:'AL-1041',sev:'high',status:'acknowledged',failure:'F3 Pressure Family Fault — TP2',action:'Check pressure relief valve and downstream piping. Replace worn seals if pressure drop exceeds 0.3 bar.',score:0.78,ts:new Date(2020,6,14,9,12,0),createdBy:'smartmetro-ai',assignedTo:'J. Ferreira (Technician)'},
+      {id:'AL-1040',sev:'medium',status:'resolved',failure:'Oil Temperature Drift — T2',action:'Verify oil cooler flow rate. Clean heat-exchanger fins. Schedule oil sample analysis if temperature remains above 72°C.',score:0.71,ts:new Date(2020,6,13,16,55,0),createdBy:'smartmetro-ai',assignedTo:'R. Costa (Operator)'},
+      {id:'AL-1039',sev:'critical',status:'new',failure:'Motor Current Anomaly — MC',action:'Check motor winding insulation resistance. Inspect contactor and overload relay. Reduce load if current spike exceeds 7A.',score:0.88,ts:new Date(2020,6,13,8,3,0),createdBy:'smartmetro-ai',assignedTo:null},
+      {id:'AL-1038',sev:'low',status:'resolved',failure:'Sensor TP2 Baseline Drift',action:'Recalibrate TP2 pressure transducer. Compare against reference gauge during next maintenance window.',score:0.55,ts:new Date(2020,6,12,11,30,0),createdBy:'m.wael (admin)',assignedTo:'J. Ferreira (Technician)'},
+      {id:'AL-1037',sev:'high',status:'acknowledged',failure:'Valve Leakage — DV_pressure (F2 pattern)',action:'Pressure-test the DV_pressure solenoid valve at full cycle. Replace valve seat if internal leakage confirmed.',score:0.69,ts:new Date(2020,6,11,15,20,0),createdBy:'smartmetro-ai',assignedTo:'A. Santos (Technician)'},
+    ];
+    this.users = [
+      {id:'u1',name:'J. Ferreira',role:'technician'},
+      {id:'u2',name:'R. Costa',role:'operator'},
+      {id:'u3',name:'A. Santos',role:'technician'},
+    ];
+  }
+
+  fmt(d){ const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],p=x=>String(x).padStart(2,'0'); return M[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+
+  sevCols(s){ const m={critical:{bg:'rgba(203,91,60,.18)',col:'#E0987F',bd:'rgba(203,91,60,.45)',bar:'background:#CB5B3C'},high:{bg:'rgba(217,169,74,.16)',col:'#E4C281',bd:'rgba(217,169,74,.4)',bar:'background:#D9A94A'},medium:{bg:'rgba(148,137,121,.18)',col:'#cabfa6',bd:'rgba(148,137,121,.35)',bar:'background:#948979'},low:{bg:'rgba(123,138,67,.14)',col:'#C6D196',bd:'rgba(123,138,67,.4)',bar:'background:#AEBC74'}}; return m[s]||m.medium; }
+  statusCols(s){ const m={new:{bg:'rgba(203,91,60,.18)',col:'#E0987F',bd:'rgba(203,91,60,.45)'},acknowledged:{bg:'rgba(217,169,74,.16)',col:'#E4C281',bd:'rgba(217,169,74,.4)'},resolved:{bg:'rgba(123,138,67,.14)',col:'#C6D196',bd:'rgba(123,138,67,.4)'}}; return m[s]||m.new; }
+
+  filterAlerts(){
+    const s=this.state;
+    return this.alerts.filter(a=>{
+      if(s.statusFilter!=='all' && a.status!==s.statusFilter) return false;
+      if(s.sevFilter!=='all' && a.sev!==s.sevFilter) return false;
+      if(s.searchQ){ const q=s.searchQ.toLowerCase(); if(!a.failure.toLowerCase().includes(q)&&!a.id.toLowerCase().includes(q)&&!a.action.toLowerCase().includes(q)) return false; }
+      return true;
+    });
+  }
+
+  renderVals(){
+    const s=this.state;
+    const total=this.alerts.length;
+    const newN=this.alerts.filter(a=>a.status==='new').length;
+    const critN=this.alerts.filter(a=>a.sev==='critical').length;
+    const resolvedN=this.alerts.filter(a=>a.status==='resolved').length;
+
+    const statCards=[
+      {label:'Total Alerts',icon:'assignment',count:total,numStyle:{color:'#DFD0B8'},barStyle:{width:'100%',background:'#393E46'},extraStyle:{}},
+      {label:'New',icon:'circle_notifications',count:newN,numStyle:{color:'#E0987F'},barStyle:{width:Math.round(newN/total*100)+'%',background:'#CB5B3C'},extraStyle:newN>0?{borderColor:'rgba(203,91,60,.35)'}:{}},
+      {label:'Critical',icon:'warning',count:critN,numStyle:{color:'#E0987F'},barStyle:{width:Math.round(critN/total*100)+'%',background:'#CB5B3C'},extraStyle:critN>0?{borderColor:'rgba(203,91,60,.35)'}:{}},
+      {label:'Resolved',icon:'check_circle',count:resolvedN,numStyle:{color:'#C6D196'},barStyle:{width:Math.round(resolvedN/total*100)+'%',background:'#7b8a43'},extraStyle:{}},
+    ];
+
+    const tabBase={padding:'6px 12px',borderRadius:8,border:'1px solid',fontSize:12,fontFamily:'Poppins',fontWeight:600,cursor:'pointer',letterSpacing:'.02em'};
+    const tab=(val,cur,label)=>{const active=cur===val;return {label,onClick:()=>this.setState({statusFilter:val!==undefined?val:cur}),style:Object.assign({},tabBase,active?{background:'rgba(223,208,184,.12)',color:'#DFD0B8',borderColor:'#DFD0B8'}:{background:'transparent',color:'#948979',borderColor:'#333b45'})};};
+    const statusFilters=['all','new','acknowledged','resolved'].map(v=>tab(v,s.statusFilter,v==='all'?'All':v.charAt(0).toUpperCase()+v.slice(1)));
+    const sevOptions2=['all','critical','high','medium','low'].map(v=>({label:v==='all'?'All':v.charAt(0).toUpperCase()+v.slice(1),onClick:()=>this.setState({sevFilter:v}),style:Object.assign({},tabBase,s.sevFilter===v?{background:'rgba(223,208,184,.12)',color:'#DFD0B8',borderColor:'#DFD0B8'}:{background:'transparent',color:'#948979',borderColor:'#333b45'})}));
+
+    const filtered=this.filterAlerts();
+
+    const rows=filtered.map(a=>{
+      const sc=this.sevCols(a.sev), stc=this.statusCols(a.status);
+      const expanded=!!s.expanded[a.id];
+      return {
+        id:a.id, failureText:a.failure, actionShort:a.action.slice(0,80)+(a.action.length>80?'…':''),
+        actionFull:a.action, timeText:this.fmt(a.ts), createdBy:a.createdBy,
+        assignedTo:a.assignedTo||'Unassigned',
+        showScore:a.score!=null, scoreText:a.score!=null?a.score.toFixed(2):'—',
+        scoreNumStyle:{color:a.score>=0.65?'#E0987F':a.score>=0.5?'#E4C281':'#C6D196'},
+        sevLabel:a.sev.toUpperCase(), sevStyle:{background:sc.bg,color:sc.col,border:'1px solid '+sc.bd},
+        statusLabel:a.status.toUpperCase(), statusStyle:{background:stc.bg,color:stc.col,border:'1px solid '+stc.bd},
+        borderCol:expanded?(a.sev==='critical'?'rgba(203,91,60,.45)':'#393E46'):'#333b45',
+        chevronStyle:{transform:expanded?'rotate(90deg)':'rotate(0deg)'},
+        expanded,
+        showAck:a.status==='new', showResolve:a.status==='acknowledged',
+        showEscalate:a.status!=='resolved'&&a.sev!=='critical',
+        showAssignBtn:!a.assignedTo&&a.status!=='resolved',
+        onExpand:()=>{ const exp=Object.assign({},s.expanded); exp[a.id]=!exp[a.id]; this.setState({expanded:exp}); },
+        stopProp:(e)=>e.stopPropagation(),
+        onAck:(e)=>{e.stopPropagation(); a.status='acknowledged'; this.forceUpdate();},
+        onResolve:(e)=>{e.stopPropagation(); a.status='resolved'; this.forceUpdate();},
+        onEscalate:(e)=>{e.stopPropagation(); a.sev='critical'; this.forceUpdate();},
+        onAssignOpen:(e)=>{e.stopPropagation(); this.setState({assignOpen:true,assignTargetId:a.id,assignUserId:null});},
+      };
+    });
+
+    // lifecycle bars
+    const lbDefs=[{label:'New',n:newN,col:'#CB5B3C',numStyle:{color:'#E0987F'}},{label:'Acknowledged',n:this.alerts.filter(a=>a.status==='acknowledged').length,col:'#D9A94A',numStyle:{color:'#E4C281'}},{label:'Resolved',n:resolvedN,col:'#7b8a43',numStyle:{color:'#C6D196'}}];
+    const lifecycleBars=lbDefs.map(l=>({label:l.label,n:l.n,numStyle:l.numStyle,barStyle:{width:Math.max(4,Math.round(l.n/total*100))+'%',background:l.col}}));
+    const sbDefs=[{label:'Critical',n:critN,col:'#CB5B3C',ns:{color:'#E0987F'}},{label:'High',n:this.alerts.filter(a=>a.sev==='high').length,col:'#D9A94A',ns:{color:'#E4C281'}},{label:'Medium',n:this.alerts.filter(a=>a.sev==='medium').length,col:'#948979',ns:{color:'#cabfa6'}},{label:'Low',n:this.alerts.filter(a=>a.sev==='low').length,col:'#AEBC74',ns:{color:'#C6D196'}}];
+    const sevBars=sbDefs.map(b=>({label:b.label,n:b.n,numStyle:b.ns,barStyle:{width:Math.max(4,Math.round(b.n/total*100))+'%',background:b.col}}));
+
+    const apiRef=[
+      {method:'GET',path:'/',methodStyle:{background:'rgba(123,138,67,.2)',color:'#C6D196'}},
+      {method:'POST',path:'/',methodStyle:{background:'rgba(217,169,74,.2)',color:'#E4C281'}},
+      {method:'PUT',path:'/{id}/status',methodStyle:{background:'rgba(148,137,121,.2)',color:'#cabfa6'}},
+      {method:'PUT',path:'/{id}/assign',methodStyle:{background:'rgba(148,137,121,.2)',color:'#cabfa6'}},
+      {method:'PUT',path:'/{id}/escalate',methodStyle:{background:'rgba(203,91,60,.2)',color:'#E0987F'}},
+    ];
+
+    // create modal
+    const sevOpts=['low','medium','high','critical'];
+    const sevOptions=sevOpts.map(sv=>{const sc2=this.sevCols(sv),active=s.newSev===sv;return{label:sv.charAt(0).toUpperCase()+sv.slice(1),onClick:()=>this.setState({newSev:sv}),style:{padding:'6px 11px',borderRadius:8,border:'1px solid '+(active?sc2.bd:'#333b45'),background:active?sc2.bg:'transparent',color:active?sc2.col:'#948979',fontFamily:'Poppins',fontWeight:600,fontSize:12,cursor:'pointer'}};});
+
+    // assign modal
+    const assignUsers=this.users.map(u=>({name:u.name,roleLabel:u.role.charAt(0).toUpperCase()+u.role.slice(1),selected:s.assignUserId===u.id,onClick:()=>this.setState({assignUserId:u.id}),style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 14px',borderRadius:10,border:'1px solid '+(s.assignUserId===u.id?'#DFD0B8':'#333b45'),background:s.assignUserId===u.id?'rgba(223,208,184,.08)':'#1B2027',cursor:'pointer'}}));
+
+    return {
+      searchQ:s.searchQ, onSearch:(e)=>this.setState({searchQ:e.target.value}),
+      statusFilters, sevFilters:sevOptions2,
+      filteredCount:filtered.length,
+      statCards, rows, emptyShow:rows.length===0,
+      lifecycleBars, sevBars, apiRef,
+
+      onCreateOpen:()=>this.setState({createOpen:true}),
+      onCreateClose:()=>this.setState({createOpen:false}),
+      createOpen:s.createOpen,
+      newFailure:s.newFailure, onNewFailure:(e)=>this.setState({newFailure:e.target.value}),
+      newAction:s.newAction, onNewAction:(e)=>this.setState({newAction:e.target.value}),
+      newScore:s.newScore, onNewScore:(e)=>this.setState({newScore:e.target.value}),
+      sevOptions,
+      onCreateSubmit:()=>{
+        if(!s.newFailure||!s.newAction) return;
+        this.alerts.unshift({id:'AL-'+this.nextId++,sev:s.newSev,status:'new',failure:s.newFailure,action:s.newAction,score:s.newScore?parseFloat(s.newScore):null,ts:new Date(),createdBy:'m.wael (admin)',assignedTo:null});
+        this.setState({createOpen:false,newFailure:'',newAction:'',newSev:'medium',newScore:''});
+      },
+
+      assignOpen:s.assignOpen,
+      onAssignClose:()=>this.setState({assignOpen:false,assignTargetId:null,assignUserId:null}),
+      assignUsers,
+      onAssignConfirm:()=>{
+        if(!s.assignUserId) return;
+        const a=this.alerts.find(x=>x.id===s.assignTargetId);
+        const u=this.users.find(x=>x.id===s.assignUserId);
+        if(a&&u){ a.assignedTo=u.name+' ('+u.role.charAt(0).toUpperCase()+u.role.slice(1)+')'; }
+        this.setState({assignOpen:false,assignTargetId:null,assignUserId:null});
+      },
+      stopBubble:(e)=>e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

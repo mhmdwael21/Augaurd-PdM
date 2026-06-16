@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+    <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#1B2027;font-family:'Satoshi',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    input,select{font-family:inherit;outline:none}
+    input::placeholder{color:#5d5850}
+    ::-webkit-scrollbar{width:7px}
+    ::-webkit-scrollbar-thumb{background:#393E46;border-radius:6px}
+    @keyframes scin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes scpop{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+    @keyframes scblink{0%,100%{opacity:1}50%{opacity:.25}}
+      h1,h2,h3,h4,h5{font-family:'Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif,system-ui,sans-serif!important}
+    </style>
+</helmet>
+
+<div style="min-height:100vh;background:#1B2027;color:#DFD0B8">
+
+  <!-- TOP BAR -->
+  <div style="position:sticky;top:0;z-index:40;background:rgba(27,32,39,.93);backdrop-filter:blur(12px);border-bottom:1px solid #333b45;padding:0 28px">
+    <div style="max-width:1440px;margin:0 auto;height:58px;display:flex;align-items:center;justify-content:space-between;gap:20px">
+      <div style="display:flex;align-items:center;gap:18px">
+        <div style="display:flex;align-items:center;gap:11px">
+          <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(150deg,#948979,#DFD0B8);display:flex;align-items:center;justify-content:center">
+            <span style="font-weight:800;font-size:17px;color:#1B2027">A</span>
+          </div>
+          <span style="font-weight:700;font-size:16px;color:#DFD0B8">Auguard<span style="color:#948979;font-weight:500"> · PdM</span></span>
+        </div>
+        <div style="width:1px;height:22px;background:#333b45"></div>
+        <nav style="display:flex;gap:4px">
+          <a href="Dashboard.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Dashboard</a>
+          <a href="Alerts.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Alerts</a>
+          <a href="Notifications.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Notifications</a>
+          <span style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:600;color:#DFD0B8;background:#393E46;cursor:default">Users</span>
+        </nav>
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;padding:5px 11px 5px 5px;border:1px solid #333b45;border-radius:999px;background:#222831">
+        <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(150deg,#393E46,#948979);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#DFD0B8">MW</span>
+        <div style="display:flex;flex-direction:column;line-height:1.2">
+          <span style="font-size:12px;font-weight:600;color:#DFD0B8">Mohamed W.</span>
+          <span style="font-size:9.5px;font-weight:600;letter-spacing:.1em;color:#7b8a43">ADMIN</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1440px;margin:0 auto;padding:26px 28px 48px;display:flex;gap:22px">
+
+    <!-- MAIN COLUMN -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:18px">
+
+      <!-- PAGE HEADER -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div>
+          <h1 style="font-size:24px;font-weight:700;letter-spacing:-.01em;color:#DFD0B8">User Management</h1>
+          <p style="font-size:13px;color:#948979;margin-top:4px">Registered accounts — Admin only view. GET /auth/users</p>
+        </div>
+        <button onClick="{{ onAddOpen }}" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;border:none;background:#DFD0B8;color:#1B2027;font-family:'Satoshi';font-weight:700;font-size:13px;cursor:pointer">
+          <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:18px;color:#1B2027">person_add</span> Add User
+        </button>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <sc-for list="{{ statCards }}" as="s" hint-placeholder-count="4">
+          <div style="background:#222831;border:1px solid {{ s.borderCol }};border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:11.5px;font-weight:500;color:#948979">{{ s.label }}</span>
+              <div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;{{ s.iconBg }}">
+                <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:19px;color:#948979">{{ s.icon }}</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:7px">
+              <span style="font-size:34px;font-weight:700;{{ s.numStyle }}">{{ s.n }}</span>
+              <span style="font-size:11px;color:#6f6a60">users</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- SEARCH + FILTER BAR -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:180px;display:flex;align-items:center;gap:9px;padding:9px 13px;background:#1B2027;border:1px solid #333b45;border-radius:10px">
+          <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:16px;color:#5d5850">search</span>
+          <input value="{{ searchQ }}" onChange="{{ onSearch }}" placeholder="Search by username or email…" style="flex:1;background:none;border:none;color:#DFD0B8;font-size:13px">
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <span style="font-size:11.5px;font-weight:500;color:#6f6a60;letter-spacing:.04em">ROLE</span>
+          <sc-for list="{{ roleFilters }}" as="f" hint-placeholder-count="4">
+            <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin-left:auto;font-size:12px;color:#6f6a60;font-weight:500">{{ filteredCount }} users</div>
+      </div>
+
+      <!-- USER TABLE -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;overflow:hidden">
+        <!-- header -->
+        <div style="display:grid;grid-template-columns:2fr 2.2fr 1.1fr 1.4fr 1fr;gap:0;padding:11px 20px;border-bottom:1px solid #2f3742;background:#1e2530">
+          <span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">User</span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">Email</span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">Role</span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">Joined</span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#6f6a60;text-transform:uppercase">Alerts</span>
+        </div>
+
+        <sc-if value="{{ emptyShow }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:44px;text-align:center;color:#6f6a60;font-size:13px">No users match your search.</div>
+        </sc-if>
+
+        <sc-for list="{{ rows }}" as="u" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:2fr 2.2fr 1.1fr 1.4fr 1fr;gap:0;padding:14px 20px;border-bottom:1px solid #262d38;align-items:center;animation:scin .22s ease both" style-hover="background:#262d38">
+            <!-- user -->
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;{{ u.avatarStyle }}">{{ u.initials }}</div>
+              <div style="display:flex;flex-direction:column;gap:1px">
+                <span style="font-size:13.5px;font-weight:600;color:#DFD0B8">{{ u.username }}</span>
+                <span style="font-size:11px;color:#6f6a60">{{ u.idShort }}</span>
+              </div>
+            </div>
+            <!-- email -->
+            <span style="font-size:13px;color:#a59c8c;font-weight:400">{{ u.email }}</span>
+            <!-- role badge -->
+            <span style="display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.08em;padding:4px 10px;border-radius:7px;width:fit-content;{{ u.roleStyle }}">{{ u.roleLabel }}</span>
+            <!-- joined -->
+            <span style="font-size:12.5px;color:#7c756a;font-weight:400">{{ u.joinedText }}</span>
+            <!-- alerts -->
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:14px;font-weight:700;color:#DFD0B8">{{ u.alertCount }}</span>
+              <sc-if value="{{ u.hasCritical }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;background:rgba(203,91,60,.18);color:#E0987F;letter-spacing:.06em">CRIT</span>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- RIGHT RAIL -->
+    <div style="flex:0 0 280px;width:280px;display:flex;flex-direction:column;gap:14px;padding-top:4px">
+
+      <!-- role donut-style breakdown -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#948979;text-transform:uppercase">Role Distribution</span>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="flex-shrink:0">{{ roleDonut }}</div>
+          <div style="display:flex;flex-direction:column;gap:8px;flex:1">
+            <sc-for list="{{ roleLegend }}" as="rl" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="width:9px;height:9px;border-radius:3px;flex-shrink:0;{{ rl.dotStyle }}"></span>
+                <span style="font-size:12px;color:#cabfa6;flex:1">{{ rl.label }}</span>
+                <span style="font-size:12px;font-weight:700;{{ rl.numStyle }}">{{ rl.n }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <sc-for list="{{ roleBars }}" as="rb" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;justify-content:space-between">
+                <span style="font-size:11.5px;font-weight:500;color:#948979">{{ rb.label }}</span>
+                <span style="font-size:11px;color:#6f6a60">{{ rb.pct }}%</span>
+              </div>
+              <div style="height:5px;border-radius:999px;background:#1B2027;overflow:hidden"><div style="height:100%;border-radius:999px;{{ rb.barStyle }}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- access rights quick ref -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#948979;text-transform:uppercase">Role Permissions</span>
+        <sc-for list="{{ permRows }}" as="pr" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:7px;padding:12px 13px;border-radius:10px;background:#1B2027;border:1px solid #2a3040">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:10.5px;font-weight:700;letter-spacing:.1em;padding:3px 9px;border-radius:6px;{{ pr.roleStyle }}">{{ pr.role }}</span>
+            </div>
+            <sc-for list="{{ pr.perms }}" as="p" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:7px">
+                <span style="font-size:11px;{{ p.checkStyle }}">{{ p.check }}</span>
+                <span style="font-size:11.5px;color:#a59c8c;font-weight:400">{{ p.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- api ref -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#948979;text-transform:uppercase">API Endpoints</span>
+        <sc-for list="{{ apiRef }}" as="ep" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;background:#1B2027;border-radius:8px">
+            <span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:4px;{{ ep.methodStyle }}">{{ ep.method }}</span>
+            <span style="font-size:11px;font-weight:500;color:#cabfa6">/auth{{ ep.path }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD USER MODAL -->
+  <sc-if value="{{ addOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px" onClick="{{ onAddClose }}">
+      <div style="width:min(520px,100%);background:#262C35;border:1px solid #393E46;border-radius:18px;padding:28px 30px;display:flex;flex-direction:column;gap:20px;animation:scpop .22s ease both" onClick="{{ stopBubble }}">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <h2 style="font-size:18px;font-weight:700;color:#DFD0B8">Add New User</h2>
+            <p style="font-size:12.5px;color:#948979;margin-top:3px">POST /auth/register</p>
+          </div>
+          <button onClick="{{ onAddClose }}" style="width:32px;height:32px;border-radius:8px;border:1px solid #393E46;background:transparent;color:#948979;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <!-- username -->
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Username * <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px;color:#6f6a60">(3–50 chars, unique)</span></label>
+            <input value="{{ newUsername }}" onChange="{{ onNewUsername }}" onBlur="{{ onBlurUser }}" placeholder="e.g. j.ferreira" style="padding:11px 13px;border-radius:9px;border:1px solid {{ newUserBorderCol }};background:#1B2027;color:#DFD0B8;font-size:13.5px">
+            <sc-if value="{{ newUserErrShow }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#E0987F">{{ newUserErr }}</span></sc-if>
+          </div>
+          <!-- email -->
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Email * <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px;color:#6f6a60">(unique)</span></label>
+            <input value="{{ newEmail }}" onChange="{{ onNewEmail }}" onBlur="{{ onBlurEmail }}" type="email" placeholder="e.g. j.ferreira@metro.pt" style="padding:11px 13px;border-radius:9px;border:1px solid {{ newEmailBorderCol }};background:#1B2027;color:#DFD0B8;font-size:13.5px">
+            <sc-if value="{{ newEmailErrShow }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#E0987F">{{ newEmailErr }}</span></sc-if>
+          </div>
+          <!-- password -->
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Password * <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px;color:#6f6a60">(min 6 chars — bcrypt hashed)</span></label>
+            <div style="display:flex;align-items:center;gap:0;border-radius:9px;border:1px solid {{ newPassBorderCol }};background:#1B2027;overflow:hidden">
+              <input value="{{ newPass }}" onChange="{{ onNewPass }}" onBlur="{{ onBlurPass }}" type="{{ newPassType }}" placeholder="At least 6 characters" style="flex:1;padding:11px 13px;background:none;border:none;color:#DFD0B8;font-size:13.5px">
+              <button onClick="{{ onTogglePass }}" style="padding:0 14px;height:100%;background:transparent;border:none;border-left:1px solid #393E46;color:#948979;font-family:'Satoshi';font-size:10.5px;font-weight:600;cursor:pointer;letter-spacing:.06em">{{ newPassToggle }}</button>
+            </div>
+            <sc-if value="{{ newPassErrShow }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;color:#E0987F">{{ newPassErr }}</span></sc-if>
+          </div>
+          <!-- role -->
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Role <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10.5px;color:#6f6a60">(defaults to operator)</span></label>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <sc-for list="{{ roleOptions }}" as="ro" hint-placeholder-count="3">
+                <button onClick="{{ ro.onClick }}" style="{{ ro.style }}">
+                  <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:18px;color:inherit">{{ ro.icon }}</span>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <span style="font-size:13px;font-weight:600">{{ ro.label }}</span>
+                    <span style="font-size:10px;color:#7c756a;font-weight:400">{{ ro.desc }}</span>
+                  </div>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <sc-if value="{{ addErrShow }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:10px 14px;border-radius:9px;background:rgba(203,91,60,.1);border:1px solid rgba(203,91,60,.35)">
+            <span style="font-size:12.5px;color:#E0987F">{{ addErr }}</span>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button onClick="{{ onAddClose }}" style="padding:10px 18px;border-radius:9px;border:1px solid #393E46;background:transparent;color:#948979;font-family:'Satoshi';font-weight:600;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ onAddSubmit }}" style="padding:10px 22px;border-radius:9px;border:none;background:#DFD0B8;color:#1B2027;font-family:'Satoshi';font-weight:700;font-size:13px;cursor:pointer">Create Account</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state={searchQ:'',roleFilter:'all',addOpen:false,newUsername:'',newEmail:'',newPass:'',newRole:'operator',newPassShow:false,touched:{},addErr:''};
+    this.users=[
+      {id:'8f3a1b2c-0001',username:'m.wael',email:'m.wael@metro.pt',role:'admin',created_at:new Date(2020,0,10,9,0,0),alertCount:0,hasCritical:false},
+      {id:'8f3a1b2c-0002',username:'j.ferreira',email:'j.ferreira@metro.pt',role:'technician',created_at:new Date(2020,1,3,10,30,0),alertCount:2,hasCritical:false},
+      {id:'8f3a1b2c-0003',username:'r.costa',email:'r.costa@metro.pt',role:'operator',created_at:new Date(2020,2,14,8,0,0),alertCount:1,hasCritical:false},
+      {id:'8f3a1b2c-0004',username:'a.santos',email:'a.santos@metro.pt',role:'technician',created_at:new Date(2020,4,20,11,0,0),alertCount:1,hasCritical:false},
+      {id:'8f3a1b2c-0005',username:'l.rodrigues',email:'l.rodrigues@metro.pt',role:'operator',created_at:new Date(2020,5,1,9,30,0),alertCount:0,hasCritical:false},
+      {id:'8f3a1b2c-0006',username:'c.alves',email:'c.alves@metro.pt',role:'admin',created_at:new Date(2020,5,15,14,0,0),alertCount:0,hasCritical:false},
+    ];
+  }
+
+  fmt(d){const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return M[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear();}
+  initials(u){return u.split('.').map(p=>p[0]?p[0].toUpperCase():'').join('').slice(0,2);}
+
+  roleCols(r){return{admin:{bg:'rgba(148,137,121,.18)',col:'#DFD0B8',bd:'rgba(148,137,121,.35)',avBg:'linear-gradient(150deg,#393E46,#948979)',avCol:'#DFD0B8',bar:'#948979'},technician:{bg:'rgba(217,169,74,.14)',col:'#E4C281',bd:'rgba(217,169,74,.38)',avBg:'linear-gradient(150deg,#3a3010,#c2913a)',avCol:'#E4C281',bar:'#D9A94A'},operator:{bg:'rgba(123,138,67,.13)',col:'#C6D196',bd:'rgba(123,138,67,.38)',avBg:'linear-gradient(150deg,#1e2a10,#7b8a43)',avCol:'#C6D196',bar:'#AEBC74'}}[r]||{};}
+
+  filterUsers(){
+    const s=this.state;
+    return this.users.filter(u=>{
+      if(s.roleFilter!=='all'&&u.role!==s.roleFilter) return false;
+      if(s.searchQ){const q=s.searchQ.toLowerCase();if(!u.username.toLowerCase().includes(q)&&!u.email.toLowerCase().includes(q)) return false;}
+      return true;
+    });
+  }
+
+  validateNew(){
+    const s=this.state,e={};
+    if(!s.newUsername.trim()) e.username='Username is required.';
+    else if(s.newUsername.trim().length<3) e.username='Must be at least 3 characters.';
+    else if(s.newUsername.trim().length>50) e.username='Must be 50 characters or fewer.';
+    else if(this.users.some(u=>u.username===s.newUsername.trim())) e.username='Username already registered.';
+    if(!s.newEmail.trim()) e.email='Email is required.';
+    else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.newEmail.trim())) e.email='Enter a valid email address.';
+    else if(this.users.some(u=>u.email===s.newEmail.trim())) e.email='Email already registered.';
+    if(!s.newPass) e.password='Password is required.';
+    else if(s.newPass.length<6) e.password='Must be at least 6 characters.';
+    return e;
+  }
+
+  donut(total,adminN,techN,opN){
+    const h=React.createElement;
+    const size=96,cx=48,cy=48,r=36,stroke=10;
+    const circ=2*Math.PI*r;
+    const segments=[{n:adminN,col:'#948979'},{n:techN,col:'#D9A94A'},{n:opN,col:'#AEBC74'}];
+    let offset=0;
+    const arcs=segments.map((seg,i)=>{
+      const pct=total>0?seg.n/total:0;
+      const dash=pct*circ, gap=circ-dash;
+      const el=h('circle',{key:i,cx,cy,r,fill:'none',stroke:seg.col,strokeWidth:stroke,strokeDasharray:dash+' '+gap,strokeDashoffset:-offset*circ,strokeLinecap:'round',style:{transition:'stroke-dasharray .6s ease'}});
+      offset+=pct; return el;
+    });
+    return h('svg',{width:size,height:size,viewBox:'0 0 '+size+' '+size,style:{transform:'rotate(-90deg)'}},[
+      h('circle',{key:'bg',cx,cy,r,fill:'none',stroke:'#2a3040',strokeWidth:stroke}),
+      ...arcs,
+      h('text',{key:'t',x:cx,y:cy,textAnchor:'middle',dominantBaseline:'central',fill:'#DFD0B8',fontSize:18,fontWeight:700,fontFamily:'Poppins',style:{transform:'rotate(90deg)',transformOrigin:'48px 48px'}},total),
+    ]);
+  }
+
+  renderVals(){
+    const s=this.state;
+    const total=this.users.length;
+    const adminN=this.users.filter(u=>u.role==='admin').length;
+    const techN=this.users.filter(u=>u.role==='technician').length;
+    const opN=this.users.filter(u=>u.role==='operator').length;
+    const filtered=this.filterUsers();
+
+    const statCards=[
+      {label:'Total Users',icon:'group',n:total,numStyle:{color:'#DFD0B8'},iconBg:{background:'rgba(148,137,121,.14)',border:'1px solid #393E46'},borderCol:'#333b45'},
+      {label:'Admins',icon:'admin_panel_settings',n:adminN,numStyle:{color:'#DFD0B8'},iconBg:{background:'rgba(148,137,121,.14)',border:'1px solid #393E46'},borderCol:'#333b45'},
+      {label:'Technicians',icon:'build',n:techN,numStyle:{color:'#E4C281'},iconBg:{background:'rgba(217,169,74,.14)',border:'1px solid rgba(217,169,74,.35)'},borderCol:'rgba(217,169,74,.25)'},
+      {label:'Operators',icon:'monitoring',n:opN,numStyle:{color:'#C6D196'},iconBg:{background:'rgba(123,138,67,.13)',border:'1px solid rgba(123,138,67,.35)'},borderCol:'rgba(123,138,67,.25)'},
+    ];
+
+    const tabBase={padding:'6px 12px',borderRadius:8,border:'1px solid',fontSize:12,fontFamily:'Poppins',fontWeight:600,cursor:'pointer',letterSpacing:'.02em'};
+    const roleFilters=['all','admin','technician','operator'].map(v=>({label:v==='all'?'All':v.charAt(0).toUpperCase()+v.slice(1),onClick:()=>this.setState({roleFilter:v}),style:Object.assign({},tabBase,s.roleFilter===v?{background:'rgba(223,208,184,.12)',color:'#DFD0B8',borderColor:'#DFD0B8'}:{background:'transparent',color:'#948979',borderColor:'#333b45'})}));
+
+    const rows=filtered.map(u=>{
+      const rc=this.roleCols(u.role);
+      return {
+        initials:this.initials(u.username),username:u.username,email:u.email,
+        idShort:u.id.slice(0,8)+'…',
+        roleLabel:u.role.toUpperCase(),roleStyle:{background:rc.bg,color:rc.col,border:'1px solid '+rc.bd},
+        avatarStyle:{background:rc.avBg,color:rc.avCol},
+        joinedText:this.fmt(u.created_at),
+        alertCount:u.alertCount,hasCritical:u.hasCritical,
+      };
+    });
+
+    const roleLegend=[
+      {label:'Admin',n:adminN,dotStyle:{background:'#948979'},numStyle:{color:'#DFD0B8'}},
+      {label:'Technician',n:techN,dotStyle:{background:'#D9A94A'},numStyle:{color:'#E4C281'}},
+      {label:'Operator',n:opN,dotStyle:{background:'#AEBC74'},numStyle:{color:'#C6D196'}},
+    ];
+    const roleBars=[
+      {label:'Admin',pct:total>0?Math.round(adminN/total*100):0,barStyle:{width:Math.max(4,total>0?Math.round(adminN/total*100):0)+'%',background:'#948979'}},
+      {label:'Technician',pct:total>0?Math.round(techN/total*100):0,barStyle:{width:Math.max(4,total>0?Math.round(techN/total*100):0)+'%',background:'#D9A94A'}},
+      {label:'Operator',pct:total>0?Math.round(opN/total*100):0,barStyle:{width:Math.max(4,total>0?Math.round(opN/total*100):0)+'%',background:'#AEBC74'}},
+    ];
+
+    const permRows=[
+      {role:'ADMIN',roleStyle:{background:'rgba(148,137,121,.18)',color:'#DFD0B8',border:'1px solid rgba(148,137,121,.35)'},perms:[{check:'✓',checkStyle:{color:'#C6D196'},label:'View all alerts'},{check:'✓',checkStyle:{color:'#C6D196'},label:'Create & escalate alerts'},{check:'✓',checkStyle:{color:'#C6D196'},label:'Assign alerts to users'},{check:'✓',checkStyle:{color:'#C6D196'},label:'Send notifications'},{check:'✓',checkStyle:{color:'#C6D196'},label:'List all users'}]},
+      {role:'TECHNICIAN',roleStyle:{background:'rgba(217,169,74,.14)',color:'#E4C281',border:'1px solid rgba(217,169,74,.38)'},perms:[{check:'✓',checkStyle:{color:'#C6D196'},label:'View assigned alerts'},{check:'✓',checkStyle:{color:'#C6D196'},label:'Acknowledge & resolve'},{check:'✗',checkStyle:{color:'#E0987F'},label:'Create / escalate alerts'},{check:'✗',checkStyle:{color:'#E0987F'},label:'Assign / send notifs'}]},
+      {role:'OPERATOR',roleStyle:{background:'rgba(123,138,67,.13)',color:'#C6D196',border:'1px solid rgba(123,138,67,.38)'},perms:[{check:'✓',checkStyle:{color:'#C6D196'},label:'View assigned alerts'},{check:'✓',checkStyle:{color:'#C6D196'},label:'Acknowledge & resolve'},{check:'✗',checkStyle:{color:'#E0987F'},label:'Create / escalate'},{check:'✗',checkStyle:{color:'#E0987F'},label:'Send notifications'}]},
+    ];
+
+    const apiRef=[
+      {method:'GET',path:'/users',methodStyle:{background:'rgba(123,138,67,.2)',color:'#C6D196'}},
+      {method:'POST',path:'/register',methodStyle:{background:'rgba(217,169,74,.2)',color:'#E4C281'}},
+      {method:'POST',path:'/login',methodStyle:{background:'rgba(148,137,121,.2)',color:'#cabfa6'}},
+    ];
+
+    // add modal
+    const errs=this.validateNew();
+    const showErr=(k)=>!!(s.touched[k]&&errs[k]);
+    const borderCol=(k)=>showErr(k)?'rgba(203,91,60,.6)':'#393E46';
+    const roleOpts=[{v:'operator',icon:'monitoring',label:'Operator',desc:'Read + resolve'},{v:'technician',icon:'build',label:'Technician',desc:'Resolve + ack'},{v:'admin',icon:'admin_panel_settings',label:'Admin',desc:'Full access'}];
+    const roleOptions=roleOpts.map(r=>{const active=s.newRole===r.v;const rc2=this.roleCols(r.v);return{icon:r.icon,label:r.label,desc:r.desc,onClick:()=>this.setState({newRole:r.v}),style:{display:'flex',flexDirection:'column',gap:5,padding:'11px 12px',borderRadius:10,cursor:'pointer',textAlign:'left',border:'1px solid '+(active?rc2.bd:'#393E46'),background:active?rc2.bg:'#1B2027',color:active?rc2.col:'#a59c8c'}};});
+
+    return {
+      statCards,roleFilters,filteredCount:filtered.length,rows,emptyShow:rows.length===0,
+      roleLegend,roleBars,permRows,apiRef,
+      roleDonut:this.donut(total,adminN,techN,opN),
+
+      addOpen:s.addOpen,
+      onAddOpen:()=>this.setState({addOpen:true,addErr:'',touched:{}}),
+      onAddClose:()=>this.setState({addOpen:false}),
+      stopBubble:(e)=>e.stopPropagation(),
+
+      newUsername:s.newUsername,onNewUsername:(e)=>this.setState({newUsername:e.target.value}),
+      onBlurUser:()=>this.setState(ps=>({touched:Object.assign({},ps.touched,{username:true})})),
+      newUserBorderCol:borderCol('username'),newUserErr:errs.username||'',newUserErrShow:showErr('username'),
+
+      newEmail:s.newEmail,onNewEmail:(e)=>this.setState({newEmail:e.target.value}),
+      onBlurEmail:()=>this.setState(ps=>({touched:Object.assign({},ps.touched,{email:true})})),
+      newEmailBorderCol:borderCol('email'),newEmailErr:errs.email||'',newEmailErrShow:showErr('email'),
+
+      newPass:s.newPass,onNewPass:(e)=>this.setState({newPass:e.target.value}),
+      onBlurPass:()=>this.setState(ps=>({touched:Object.assign({},ps.touched,{password:true})})),
+      newPassBorderCol:borderCol('password'),newPassErr:errs.password||'',newPassErrShow:showErr('password'),
+      newPassType:s.newPassShow?'text':'password',newPassToggle:s.newPassShow?'HIDE':'SHOW',
+      onTogglePass:()=>this.setState(ps=>({newPassShow:!ps.newPassShow})),
+
+      roleOptions,
+      addErr:s.addErr,addErrShow:!!s.addErr,
+      onAddSubmit:()=>{
+        const e=this.validateNew();
+        if(Object.keys(e).length){this.setState({touched:{username:true,email:true,password:true},addErr:'Please fix the errors above.'});return;}
+        this.users.unshift({id:'8f3a1b2c-00'+String(this.users.length+1).padStart(2,'0'),username:s.newUsername.trim(),email:s.newEmail.trim(),role:s.newRole,created_at:new Date(),alertCount:0,hasCritical:false});
+        this.setState({addOpen:false,newUsername:'',newEmail:'',newPass:'',newRole:'operator',touched:{},addErr:'',newPassShow:false});
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

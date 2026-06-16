@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+    <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:#1B2027;font-family:'Satoshi',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    input,select,textarea{font-family:inherit;outline:none}
+    input::placeholder,textarea::placeholder{color:#5d5850}
+    ::-webkit-scrollbar{width:7px}
+    ::-webkit-scrollbar-thumb{background:#393E46;border-radius:6px}
+    @keyframes scin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes scblink{0%,100%{opacity:1}50%{opacity:.25}}
+    @keyframes scspin{to{transform:rotate(360deg)}}
+    @keyframes scpop{0%{opacity:0;transform:scale(.9)}100%{opacity:1;transform:scale(1)}}
+      h1,h2,h3,h4,h5{font-family:'Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif,system-ui,sans-serif!important}
+    </style>
+</helmet>
+
+<div style="min-height:100vh;background:#1B2027;color:#DFD0B8">
+
+  <!-- TOP BAR -->
+  <div style="position:sticky;top:0;z-index:40;background:rgba(27,32,39,.93);backdrop-filter:blur(12px);border-bottom:1px solid #333b45;padding:0 28px">
+    <div style="max-width:1440px;margin:0 auto;height:58px;display:flex;align-items:center;justify-content:space-between;gap:20px">
+      <div style="display:flex;align-items:center;gap:18px">
+        <div style="display:flex;align-items:center;gap:11px">
+          <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(150deg,#948979,#DFD0B8);display:flex;align-items:center;justify-content:center">
+            <span style="font-weight:800;font-size:17px;color:#1B2027">A</span>
+          </div>
+          <span style="font-weight:700;font-size:16px;color:#DFD0B8">Auguard<span style="color:#948979;font-weight:500"> · PdM</span></span>
+        </div>
+        <div style="width:1px;height:22px;background:#333b45"></div>
+        <nav style="display:flex;gap:4px">
+          <a href="Dashboard.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Dashboard</a>
+          <a href="Alerts.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Alerts</a>
+          <span style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:600;color:#DFD0B8;background:#393E46;cursor:default">Notifications</span>
+          <a href="Users.dc.html" style="padding:6px 13px;border-radius:8px;font-size:13px;font-weight:500;color:#948979;text-decoration:none">Users</a>
+        </nav>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="position:relative">
+          <div style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid #333b45;border-radius:10px;background:#222831">
+            <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:19px;color:#7c756a">notifications</span>
+          </div>
+          <sc-if value="{{ unreadBadgeShow }}" hint-placeholder-val="{{ true }}">
+            <span style="position:absolute;top:-6px;right:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#CB5B3C;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #1B2027">{{ unreadCount }}</span>
+          </sc-if>
+        </div>
+        <div style="display:flex;align-items:center;gap:9px;padding:5px 11px 5px 5px;border:1px solid #333b45;border-radius:999px;background:#222831">
+          <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(150deg,#393E46,#948979);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#DFD0B8">MW</span>
+          <div style="display:flex;flex-direction:column;line-height:1.2">
+            <span style="font-size:12px;font-weight:600;color:#DFD0B8">Mohamed W.</span>
+            <span style="font-size:9.5px;font-weight:600;letter-spacing:.1em;color:#7b8a43">ADMIN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width:1440px;margin:0 auto;padding:26px 28px 48px;display:flex;gap:22px">
+
+    <!-- MAIN COLUMN -->
+    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:18px">
+
+      <!-- PAGE HEADER -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <h1 style="font-size:24px;font-weight:700;letter-spacing:-.01em;color:#DFD0B8">Notifications</h1>
+          <p style="font-size:13px;color:#948979">Inbox for AI alert triggers, system messages, and admin broadcasts.</p>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button onClick="{{ onMarkAllRead }}" style="padding:9px 16px;border-radius:10px;border:1px solid #393E46;background:transparent;color:#948979;font-family:'Satoshi';font-weight:600;font-size:13px;cursor:pointer">Mark all read</button>
+          <button onClick="{{ onSendOpen }}" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;border:none;background:#DFD0B8;color:#1B2027;font-family:'Satoshi';font-weight:700;font-size:13px;cursor:pointer">
+            <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:16px;color:#1B2027">send</span> Send Notification
+          </button>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        <sc-for list="{{ statCards }}" as="s" hint-placeholder-count="4">
+          <div style="background:#222831;border:1px solid {{ s.borderCol }};border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:11.5px;font-weight:500;color:#948979">{{ s.label }}</span>
+              <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:20px;color:#948979">{{ s.icon }}</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:7px">
+              <span style="font-size:32px;font-weight:700;{{ s.numStyle }}">{{ s.n }}</span>
+              <span style="font-size:11px;color:#6f6a60">{{ s.sub }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- FILTERS -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;gap:5px;align-items:center">
+          <span style="font-size:11.5px;font-weight:500;color:#6f6a60;letter-spacing:.04em">TYPE</span>
+          <sc-for list="{{ typeFilters }}" as="f" hint-placeholder-count="4">
+            <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <div style="width:1px;height:22px;background:#333b45"></div>
+        <div style="display:flex;gap:5px;align-items:center">
+          <span style="font-size:11.5px;font-weight:500;color:#6f6a60;letter-spacing:.04em">READ</span>
+          <sc-for list="{{ readFilters }}" as="f" hint-placeholder-count="3">
+            <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <div style="margin-left:auto;font-size:12px;color:#6f6a60;font-weight:500">{{ visibleCount }} notifications</div>
+      </div>
+
+      <!-- NOTIFICATION LIST -->
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <sc-if value="{{ emptyShow }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:48px;text-align:center;background:#222831;border:1px dashed #333b45;border-radius:14px;color:#6f6a60;font-size:13px">Your inbox is empty for these filters.</div>
+        </sc-if>
+        <sc-for list="{{ rows }}" as="n" hint-placeholder-count="4">
+          <div style="background:#222831;border:1px solid {{ n.borderCol }};border-radius:14px;overflow:hidden;animation:scin .22s ease both;{{ n.unreadShadow }}">
+            <div onClick="{{ n.onExpand }}" style="padding:15px 18px;display:flex;align-items:flex-start;gap:14px;cursor:pointer">
+              <!-- type icon -->
+              <div style="flex-shrink:0;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:inherit;{{ n.iconBg }}">
+                <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:20px;color:inherit">{{ n.typeIcon }}</span>
+              </div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+                <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                  <span style="font-size:14px;font-weight:{{ n.subjectWeight }};color:{{ n.subjectCol }};line-height:1.3">{{ n.subject }}</span>
+                  <span style="font-size:10.5px;font-weight:600;letter-spacing:.08em;padding:3px 9px;border-radius:6px;{{ n.typeStyle }}">{{ n.typeLabel }}</span>
+                  <sc-if value="{{ n.unread }}" hint-placeholder-val="{{ false }}">
+                    <span style="width:7px;height:7px;border-radius:50%;background:#CB5B3C;flex-shrink:0"></span>
+                  </sc-if>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <span style="font-size:11.5px;font-weight:500;padding:2px 8px;border-radius:5px;{{ n.recipStyle }}">{{ n.recipLabel }}</span>
+                  <span style="font-size:11.5px;color:#6f6a60">{{ n.timeText }}</span>
+                  <span style="font-size:11.5px;color:#6f6a60">· from {{ n.sender }}</span>
+                </div>
+              </div>
+              <span style="color:#6f6a60;font-size:16px;flex-shrink:0;margin-top:2px;transition:transform .2s;{{ n.chevronStyle }}">›</span>
+            </div>
+
+            <!-- expanded body -->
+            <sc-if value="{{ n.expanded }}" hint-placeholder-val="{{ false }}">
+              <div style="border-top:1px solid #2f3742;padding:16px 18px 18px;display:flex;flex-direction:column;gap:13px;animation:scin .18s ease both">
+                <div style="padding:13px 15px;background:#1B2027;border-radius:10px">
+                  <p style="font-size:13.5px;color:#cabfa6;line-height:1.6;font-weight:400">{{ n.body }}</p>
+                </div>
+                <sc-if value="{{ n.hasAlert }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;background:rgba(203,91,60,.08);border:1px solid rgba(203,91,60,.28)">
+                    <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:15px;color:#E0987F">link</span>
+                    <span style="font-size:12.5px;color:#E0987F;font-weight:500">Linked alert: {{ n.alertId }}</span>
+                  </div>
+                </sc-if>
+                <div style="display:flex;align-items:center;gap:9px">
+                  <sc-if value="{{ n.showMarkRead }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ n.onMarkRead }}" style="padding:8px 16px;border-radius:8px;border:none;background:#7b8a43;color:#1B2027;font-family:'Satoshi';font-size:12.5px;font-weight:700;cursor:pointer">Mark as read</button>
+                  </sc-if>
+                  <sc-if value="{{ n.isRead }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-size:12px;color:#6f6a60;font-weight:500">✓ Read</span>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- RIGHT RAIL -->
+    <div style="flex:0 0 280px;width:280px;display:flex;flex-direction:column;gap:14px;padding-top:4px">
+
+      <!-- type breakdown -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#948979;text-transform:uppercase">Type Breakdown</span>
+        <sc-for list="{{ typeBars }}" as="tb" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:18px;color:#948979">{{ tb.icon }}</span>
+                <span style="font-size:12.5px;font-weight:500;color:#cabfa6">{{ tb.label }}</span>
+              </div>
+              <span style="font-size:12px;font-weight:700;{{ tb.numStyle }}">{{ tb.n }}</span>
+            </div>
+            <div style="height:6px;border-radius:999px;background:#1B2027;overflow:hidden"><div style="height:100%;border-radius:999px;{{ tb.barStyle }}"></div></div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- recipient type breakdown -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#948979;text-transform:uppercase">Audience Split</span>
+        <sc-for list="{{ recipBars }}" as="rb" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12.5px;font-weight:500;color:#cabfa6">{{ rb.label }}</span>
+              <span style="font-size:12px;font-weight:700;color:#DFD0B8">{{ rb.n }}</span>
+            </div>
+            <div style="height:6px;border-radius:999px;background:#1B2027;overflow:hidden"><div style="height:100%;border-radius:999px;{{ rb.barStyle }}"></div></div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- api ref -->
+      <div style="background:#222831;border:1px solid #333b45;border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:11px;font-weight:600;letter-spacing:.14em;color:#948979;text-transform:uppercase">API Endpoints</span>
+        <sc-for list="{{ apiRef }}" as="ep" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:9px;padding:8px 10px;background:#1B2027;border-radius:8px">
+            <span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:4px;{{ ep.methodStyle }}">{{ ep.method }}</span>
+            <span style="font-size:11px;font-weight:500;color:#cabfa6">/notifications{{ ep.path }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEND NOTIFICATION MODAL -->
+  <sc-if value="{{ sendOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;padding:24px" onClick="{{ onSendClose }}">
+      <div style="width:min(600px,100%);max-height:90vh;overflow-y:auto;background:#262C35;border:1px solid #393E46;border-radius:18px;padding:28px 30px;display:flex;flex-direction:column;gap:20px;animation:scpop .22s ease both" onClick="{{ stopBubble }}">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <h2 style="font-size:18px;font-weight:700;color:#DFD0B8">Send Notification</h2>
+            <p style="font-size:12.5px;color:#948979;margin-top:3px">POST /notifications — Admin only</p>
+          </div>
+          <button onClick="{{ onSendClose }}" style="width:32px;height:32px;border-radius:8px;border:1px solid #393E46;background:transparent;color:#948979;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:15px">
+          <!-- subject -->
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Subject *</label>
+            <input value="{{ sendSubject }}" onChange="{{ onSendSubject }}" placeholder="e.g. Scheduled maintenance window — Jul 18" style="padding:11px 13px;border-radius:9px;border:1px solid #393E46;background:#1B2027;color:#DFD0B8;font-size:13.5px">
+          </div>
+
+          <!-- body -->
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Body *</label>
+            <textarea value="{{ sendBody }}" onChange="{{ onSendBody }}" placeholder="Full notification message…" rows="3" style="padding:11px 13px;border-radius:9px;border:1px solid #393E46;background:#1B2027;color:#DFD0B8;font-size:13.5px;resize:vertical"></textarea>
+          </div>
+
+          <!-- type -->
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Notification Type</label>
+            <div style="display:flex;gap:7px">
+              <sc-for list="{{ typeOptions }}" as="t" hint-placeholder-count="3">
+                <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <!-- recipient type -->
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Audience</label>
+            <div style="display:flex;gap:7px">
+              <sc-for list="{{ recipOptions }}" as="r" hint-placeholder-count="3">
+                <button onClick="{{ r.onClick }}" style="{{ r.style }}">
+                  <span>{{ r.icon }}</span><span>{{ r.label }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <p style="font-size:12px;color:#6f6a60;font-weight:400">{{ recipHint }}</p>
+          </div>
+
+          <!-- group target role (group only) -->
+          <sc-if value="{{ showGroupPicker }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px;padding:14px 15px;background:#1B2027;border-radius:10px;border:1px solid #393E46;animation:scin .18s ease both">
+              <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Target Role *</label>
+              <div style="display:flex;gap:7px">
+                <sc-for list="{{ roleOptions }}" as="ro" hint-placeholder-count="3">
+                  <button onClick="{{ ro.onClick }}" style="{{ ro.style }}">{{ ro.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- user picker (user only) -->
+          <sc-if value="{{ showUserPicker }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px;padding:14px 15px;background:#1B2027;border-radius:10px;border:1px solid #393E46;animation:scin .18s ease both">
+              <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#948979;text-transform:uppercase">Recipient User *</label>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <sc-for list="{{ userOptions }}" as="uo" hint-placeholder-count="3">
+                  <button onClick="{{ uo.onClick }}" style="{{ uo.style }}">
+                    <div style="display:flex;flex-direction:column;gap:1px;text-align:left">
+                      <span style="font-size:13px;font-weight:600;color:#DFD0B8">{{ uo.name }}</span>
+                      <span style="font-size:11px;color:#948979">{{ uo.roleLabel }}</span>
+                    </div>
+                    <sc-if value="{{ uo.selected }}" hint-placeholder-val="{{ false }}"><span style="color:#7b8a43;font-size:15px">✓</span></sc-if>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- alert link (alert type only) -->
+          <sc-if value="{{ showAlertPicker }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px;padding:14px 15px;background:#1B2027;border-radius:10px;border:1px solid rgba(203,91,60,.35);animation:scin .18s ease both">
+              <label style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#E0987F;text-transform:uppercase">Linked Alert ID * (required for alert type)</label>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <sc-for list="{{ alertOptions }}" as="ao" hint-placeholder-count="3">
+                  <button onClick="{{ ao.onClick }}" style="{{ ao.style }}">
+                    <div style="display:flex;flex-direction:column;gap:1px;text-align:left">
+                      <span style="font-size:12.5px;font-weight:600;color:#DFD0B8">{{ ao.id }} · {{ ao.failure }}</span>
+                      <span style="font-size:11px;color:#948979">{{ ao.sev }} · {{ ao.status }}</span>
+                    </div>
+                    <sc-if value="{{ ao.selected }}" hint-placeholder-val="{{ false }}"><span style="color:#E0987F;font-size:15px">✓</span></sc-if>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <!-- validation hint -->
+          <sc-if value="{{ sendErrShow }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:10px 14px;border-radius:9px;background:rgba(203,91,60,.1);border:1px solid rgba(203,91,60,.35)">
+              <span style="font-size:12.5px;color:#E0987F">{{ sendErr }}</span>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          <button onClick="{{ onSendClose }}" style="padding:10px 18px;border-radius:9px;border:1px solid #393E46;background:transparent;color:#948979;font-family:'Satoshi';font-weight:600;font-size:13px;cursor:pointer">Cancel</button>
+          <button onClick="{{ onSendSubmit }}" style="padding:10px 22px;border-radius:9px;border:none;background:#DFD0B8;color:#1B2027;font-family:'Satoshi';font-weight:700;font-size:13px;cursor:pointer">Send</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.state = {
+      typeFilter:'all', readFilter:'all',
+      sendOpen:false, sendSubject:'', sendBody:'',
+      sendType:'system', sendRecipType:'all',
+      sendTargetRole:null, sendUserId:null, sendAlertId:null,
+      expanded:{}, sendErr:'',
+    };
+    this.nextId = 7;
+    this.notifs = [
+      {id:'N-1006',subject:'Critical: Novel Pressure Fault — TP2, H1',body:'Isolation Forest anomaly score crossed threshold (0.94). Alert AL-1042 auto-generated. Inspect pneumatic circuit immediately.',type:'alert',recipType:'all',recipId:null,targetRole:null,sender:'smartmetro-ai',ts:new Date(2020,6,15,14,37,0),is_read:false,alert_id:'AL-1042'},
+      {id:'N-1005',subject:'CRITICAL escalation: Motor Current Anomaly',body:'Alert AL-1039 has been escalated to CRITICAL severity. Immediate inspection of motor winding insulation resistance required.',type:'alert',recipType:'group',recipId:null,targetRole:'admin',sender:'smartmetro-ai',ts:new Date(2020,6,13,8,4,0),is_read:false,alert_id:'AL-1039'},
+      {id:'N-1004',subject:'Scheduled maintenance window — Jul 18, 02:00–04:00',body:'The APU air-compressor unit will undergo scheduled oil change and filter replacement. Monitoring will resume automatically after the window closes.',type:'system',recipType:'all',recipId:null,targetRole:null,sender:'m.wael (admin)',ts:new Date(2020,6,12,9,0,0),is_read:false,alert_id:null},
+      {id:'N-1003',subject:'Alert assigned to you: F3 Pressure Family Fault',body:'A high-severity alert (AL-1041) has been assigned to you. Action required: Check pressure relief valve and downstream piping.',type:'alert',recipType:'user',recipId:'u1',targetRole:null,sender:'m.wael (admin)',ts:new Date(2020,6,14,9,13,0),is_read:true,alert_id:'AL-1041'},
+      {id:'N-1002',subject:'System update deployed — v2.1.0',body:'SmartMetro PdM backend v2.1.0 is now live. Changes: improved RUL forecast accuracy, added fault localization LSTM-AE module, and XGBoost classifier confidence gate.',type:'broadcast',recipType:'all',recipId:null,targetRole:null,sender:'m.wael (admin)',ts:new Date(2020,6,10,14,0,0),is_read:true,alert_id:null},
+      {id:'N-1001',subject:'New technician account created: A. Santos',body:'Technician account for A. Santos has been registered and is pending role assignment. Please review and assign relevant alerts.',type:'system',recipType:'group',recipId:null,targetRole:'admin',sender:'system',ts:new Date(2020,6,9,11,30,0),is_read:true,alert_id:null},
+    ];
+    this.users=[{id:'u1',name:'J. Ferreira',role:'technician'},{id:'u2',name:'R. Costa',role:'operator'},{id:'u3',name:'A. Santos',role:'technician'}];
+    this.mockAlerts=[{id:'AL-1042',failure:'Novel Pressure Fault',sev:'critical',status:'new'},{id:'AL-1041',failure:'F3 Pressure Fault',sev:'high',status:'acknowledged'},{id:'AL-1039',failure:'Motor Current Anomaly',sev:'critical',status:'new'}];
+  }
+
+  fmt(d){const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],p=x=>String(x).padStart(2,'0');return M[d.getMonth()]+' '+d.getDate()+', '+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes());}
+
+  typeMeta(t){return{alert:{icon:'crisis_alert',label:'ALERT',bg:'rgba(203,91,60,.15)',col:'#E0987F',bd:'rgba(203,91,60,.4)',bar:'#CB5B3C'},system:{icon:'settings',label:'SYSTEM',bg:'rgba(148,137,121,.18)',col:'#cabfa6',bd:'rgba(148,137,121,.35)',bar:'#948979'},broadcast:{icon:'campaign',label:'BROADCAST',bg:'rgba(123,138,67,.14)',col:'#C6D196',bd:'rgba(123,138,67,.4)',bar:'#AEBC74'}}[t]||{};}
+
+  filterNotifs(){
+    const s=this.state;
+    return this.notifs.filter(n=>{
+      if(s.typeFilter!=='all'&&n.type!==s.typeFilter) return false;
+      if(s.readFilter==='unread'&&n.is_read) return false;
+      if(s.readFilter==='read'&&!n.is_read) return false;
+      return true;
+    });
+  }
+
+  validateSend(){
+    const s=this.state;
+    if(!s.sendSubject.trim()) return 'Subject is required.';
+    if(!s.sendBody.trim()) return 'Body is required.';
+    if(s.sendRecipType==='user'&&!s.sendUserId) return 'recipient_id is required when recipient_type is "user".';
+    if(s.sendRecipType==='group'&&!s.sendTargetRole) return 'target_role is required when recipient_type is "group".';
+    if(s.sendType==='alert'&&!s.sendAlertId) return 'alert_id is required when type is "alert".';
+    return '';
+  }
+
+  renderVals(){
+    const s=this.state;
+    const all=this.notifs;
+    const unreadCount=all.filter(n=>!n.is_read).length;
+    const filtered=this.filterNotifs();
+
+    const statCards=[
+      {label:'Total',icon:'inbox',n:all.length,sub:'notifications',numStyle:{color:'#DFD0B8'},borderCol:'#333b45'},
+      {label:'Unread',icon:'mark_email_unread',n:unreadCount,sub:'unread',numStyle:{color:unreadCount>0?'#E0987F':'#DFD0B8'},borderCol:unreadCount>0?'rgba(203,91,60,.35)':'#333b45'},
+      {label:'Alert type',icon:'crisis_alert',n:all.filter(n=>n.type==='alert').length,sub:'triggered',numStyle:{color:'#E0987F'},borderCol:'#333b45'},
+      {label:'Broadcast',icon:'campaign',n:all.filter(n=>n.type==='broadcast').length,sub:'sent',numStyle:{color:'#C6D196'},borderCol:'#333b45'},
+    ];
+
+    const tabBase={padding:'6px 12px',borderRadius:8,border:'1px solid',fontSize:12,fontFamily:'Poppins',fontWeight:600,cursor:'pointer'};
+    const tab=(val,cur,label)=>{const active=cur===val;return{label,onClick:()=>this.setState(val.includes('Filter')?{}:{}),style:Object.assign({},tabBase,active?{background:'rgba(223,208,184,.12)',color:'#DFD0B8',borderColor:'#DFD0B8'}:{background:'transparent',color:'#948979',borderColor:'#333b45'})};};
+
+    const typeFilters=['all','alert','system','broadcast'].map(v=>({
+      label:v==='all'?'All':v.charAt(0).toUpperCase()+v.slice(1),
+      onClick:()=>this.setState({typeFilter:v}),
+      style:Object.assign({},tabBase,s.typeFilter===v?{background:'rgba(223,208,184,.12)',color:'#DFD0B8',borderColor:'#DFD0B8'}:{background:'transparent',color:'#948979',borderColor:'#333b45'}),
+    }));
+    const readFilters=['all','unread','read'].map(v=>({
+      label:v.charAt(0).toUpperCase()+v.slice(1),
+      onClick:()=>this.setState({readFilter:v}),
+      style:Object.assign({},tabBase,s.readFilter===v?{background:'rgba(223,208,184,.12)',color:'#DFD0B8',borderColor:'#DFD0B8'}:{background:'transparent',color:'#948979',borderColor:'#333b45'}),
+    }));
+
+    const rows=filtered.map(n=>{
+      const tm=this.typeMeta(n.type);
+      const expanded=!!s.expanded[n.id];
+      const recipHints={all:'Everyone',group:'Group: '+n.targetRole,user:'Direct: user'};
+      const recipColors={all:{bg:'rgba(148,137,121,.14)',col:'#cabfa6'},group:{bg:'rgba(217,169,74,.14)',col:'#E4C281'},user:{bg:'rgba(123,138,67,.13)',col:'#C6D196'}};
+      const rc=recipColors[n.recipType]||recipColors.all;
+      return {
+        id:n.id,subject:n.subject,body:n.body,
+        subjectWeight:n.is_read?'500':'700',subjectCol:n.is_read?'#cabfa6':'#DFD0B8',
+        typeIcon:tm.icon,typeLabel:tm.label,typeStyle:{background:tm.bg,color:tm.col,border:'1px solid '+tm.bd},
+        iconBg:{background:tm.bg,border:'1px solid '+tm.bd},
+        recipLabel:recipHints[n.recipType],recipStyle:{background:rc.bg,color:rc.col},
+        timeText:this.fmt(n.ts),sender:n.sender,
+        unread:!n.is_read,isRead:n.is_read,
+        hasAlert:!!n.alert_id,alertId:n.alert_id,
+        borderCol:!n.is_read?tm.bd:'#333b45',
+        unreadShadow:!n.is_read?'box-shadow:0 0 0 1px rgba(203,91,60,.12)':'',
+        chevronStyle:{transform:expanded?'rotate(90deg)':'rotate(0deg)'},
+        expanded,
+        showMarkRead:!n.is_read,
+        onExpand:()=>{const e=Object.assign({},s.expanded);e[n.id]=!e[n.id];this.setState({expanded:e});},
+        onMarkRead:(ev)=>{ev.stopPropagation();n.is_read=true;this.forceUpdate();},
+      };
+    });
+
+    // type bars
+    const typeBarsData=[{k:'alert',label:'Alert',icon:'crisis_alert',col:'#CB5B3C',ns:{color:'#E0987F'}},{k:'system',label:'System',icon:'settings',col:'#948979',ns:{color:'#cabfa6'}},{k:'broadcast',label:'Broadcast',icon:'campaign',col:'#AEBC74',ns:{color:'#C6D196'}}];
+    const typeBars=typeBarsData.map(t=>({icon:t.icon,label:t.label,n:all.filter(n=>n.type===t.k).length,numStyle:t.ns,barStyle:{width:Math.max(4,Math.round(all.filter(n=>n.type===t.k).length/all.length*100))+'%',background:t.col}}));
+    const recipBarsData=[{k:'all',label:'Broadcast all',col:'#7b8a43'},{k:'group',label:'Group targeted',col:'#D9A94A'},{k:'user',label:'Direct user',col:'#948979'}];
+    const recipBars=recipBarsData.map(r=>({label:r.label,n:all.filter(n=>n.recipType===r.k).length,barStyle:{width:Math.max(4,Math.round(all.filter(n=>n.recipType===r.k).length/all.length*100))+'%',background:r.col}}));
+
+    const apiRef=[
+      {method:'GET',path:'/',methodStyle:{background:'rgba(123,138,67,.2)',color:'#C6D196'}},
+      {method:'POST',path:'/',methodStyle:{background:'rgba(217,169,74,.2)',color:'#E4C281'}},
+      {method:'PUT',path:'/{id}/read',methodStyle:{background:'rgba(148,137,121,.2)',color:'#cabfa6'}},
+    ];
+
+    // send modal
+    const btnBase={display:'flex',alignItems:'center',gap:7,padding:'8px 14px',borderRadius:9,border:'1px solid',fontFamily:'Poppins',fontWeight:600,fontSize:12.5,cursor:'pointer'};
+    const typeOptions=['system','alert','broadcast'].map(t=>{const tm2=this.typeMeta(t);const active=s.sendType===t;return{label:tm2.label,onClick:()=>this.setState({sendType:t,sendAlertId:null}),style:Object.assign({},btnBase,active?{background:tm2.bg,color:tm2.col,borderColor:tm2.bd}:{background:'transparent',color:'#948979',borderColor:'#333b45'})};});
+    const recipOpts=[{v:'all',icon:'campaign',label:'All users'},{v:'group',icon:'👥',label:'By role'},{v:'user',icon:'👤',label:'Direct user'}];
+    const recipOptions=recipOpts.map(r=>{const active=s.sendRecipType===r.v;return{icon:r.icon,label:r.label,onClick:()=>this.setState({sendRecipType:r.v,sendUserId:null,sendTargetRole:null}),style:Object.assign({},btnBase,active?{background:'rgba(223,208,184,.12)',color:'#DFD0B8',borderColor:'#DFD0B8'}:{background:'transparent',color:'#948979',borderColor:'#333b45'})};});
+    const recipHintMap={all:'Sent to every registered user regardless of role.',group:'Sent to all users sharing the selected role.',user:'Sent to a single specific user — recipient_id required.'};
+    const roleOptions=['admin','technician','operator'].map(r=>{const active=s.sendTargetRole===r;return{label:r.charAt(0).toUpperCase()+r.slice(1),onClick:()=>this.setState({sendTargetRole:r}),style:Object.assign({},btnBase,active?{background:'rgba(223,208,184,.12)',color:'#DFD0B8',borderColor:'#DFD0B8'}:{background:'transparent',color:'#948979',borderColor:'#333b45'})};});
+    const userOptions=this.users.map(u=>{const active=s.sendUserId===u.id;return{name:u.name,roleLabel:u.role.charAt(0).toUpperCase()+u.role.slice(1),selected:active,onClick:()=>this.setState({sendUserId:u.id}),style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',borderRadius:9,border:'1px solid '+(active?'#DFD0B8':'#393E46'),background:active?'rgba(223,208,184,.08)':'transparent',cursor:'pointer'}};});
+    const alertOptions=this.mockAlerts.map(a=>{const active=s.sendAlertId===a.id;return{id:a.id,failure:a.failure,sev:a.sev,status:a.status,selected:active,onClick:()=>this.setState({sendAlertId:a.id}),style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 12px',borderRadius:9,border:'1px solid '+(active?'rgba(203,91,60,.55)':'#393E46'),background:active?'rgba(203,91,60,.1)':'transparent',cursor:'pointer'}};});
+
+    const sendErr=this.validateSend();
+
+    return {
+      unreadCount,unreadBadgeShow:unreadCount>0,
+      statCards,typeFilters,readFilters,visibleCount:filtered.length,
+      rows,emptyShow:rows.length===0,
+      typeBars,recipBars,apiRef,
+      onMarkAllRead:()=>{this.notifs.forEach(n=>n.is_read=true);this.forceUpdate();},
+      onSendOpen:()=>this.setState({sendOpen:true,sendErr:''}),
+      onSendClose:()=>this.setState({sendOpen:false}),
+      sendOpen:s.sendOpen,
+      sendSubject:s.sendSubject,onSendSubject:(e)=>this.setState({sendSubject:e.target.value}),
+      sendBody:s.sendBody,onSendBody:(e)=>this.setState({sendBody:e.target.value}),
+      typeOptions,recipOptions,
+      recipHint:recipHintMap[s.sendRecipType],
+      showGroupPicker:s.sendRecipType==='group',
+      showUserPicker:s.sendRecipType==='user',
+      showAlertPicker:s.sendType==='alert',
+      roleOptions,userOptions,alertOptions,
+      sendErr,sendErrShow:!!s.sendErr,
+      stopBubble:(e)=>e.stopPropagation(),
+      onSendSubmit:()=>{
+        const err=this.validateSend();
+        if(err){this.setState({sendErr:err});return;}
+        const n={id:'N-100'+this.nextId++,subject:s.sendSubject,body:s.sendBody,type:s.sendType,recipType:s.sendRecipType,recipId:s.sendUserId,targetRole:s.sendTargetRole,sender:'m.wael (admin)',ts:new Date(),is_read:false,alert_id:s.sendAlertId};
+        this.notifs.unshift(n);
+        this.setState({sendOpen:false,sendSubject:'',sendBody:'',sendType:'system',sendRecipType:'all',sendUserId:null,sendTargetRole:null,sendAlertId:null,sendErr:''});
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>

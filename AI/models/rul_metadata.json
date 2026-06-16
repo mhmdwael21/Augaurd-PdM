@@ -1,0 +1,91 @@
+{
+  "model_file": "rul_lgbm.pkl",
+  "scaler_file": "rul_scaler_sd.pkl",
+  "feature_cols_file": "rul_feature_cols.pkl",
+  "algorithm": "LightGBM",
+  "lgb_params": {
+    "objective": "regression",
+    "n_estimators": 4000,
+    "learning_rate": 0.01,
+    "num_leaves": 64,
+    "max_depth": -1,
+    "subsample": 0.9,
+    "colsample_bytree": 0.9,
+    "reg_lambda": 1.0,
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "raw_channel_order": [
+    "TP2",
+    "TP3",
+    "H1",
+    "DV_pressure",
+    "Reservoirs",
+    "Oil_temperature",
+    "Motor_current",
+    "COMP",
+    "DV_eletric",
+    "Towers",
+    "MPG",
+    "LPS",
+    "Pressure_switch",
+    "Oil_level",
+    "Caudal_impulses"
+  ],
+  "analog_cols": [
+    "TP2",
+    "TP3",
+    "H1",
+    "DV_pressure",
+    "Reservoirs",
+    "Oil_temperature",
+    "Motor_current"
+  ],
+  "digital_cols": [
+    "COMP",
+    "DV_eletric",
+    "Towers",
+    "MPG",
+    "LPS",
+    "Pressure_switch",
+    "Oil_level",
+    "Caudal_impulses"
+  ],
+  "windows_raw_channels": true,
+  "scaler_applies_to": "engineered_143_features_after_windowing",
+  "seq_len": 180,
+  "stride": 10,
+  "n_features": 143,
+  "feature_layout": {
+    "blocks": [
+      "mean",
+      "std",
+      "min",
+      "max",
+      "range",
+      "last",
+      "slope",
+      "dlast",
+      "energy"
+    ],
+    "then": "trans per digital_col (8)"
+  },
+  "trained_on": "degradation_zone_RUL_le_72h",
+  "deg_threshold_h": 72.0,
+  "cap_hours": 168.0,
+  "predict_clip_h": [
+    0.0,
+    72.0
+  ],
+  "display_zones_h": {
+    "NOMINAL": ">48",
+    "DEGRADATION": "12-48",
+    "CRITICAL": "<12"
+  },
+  "deployment_note": "Model is only meaningful during degradation. Backend MUST gate RUL behind anomaly detection; show 'NOMINAL' when no anomaly.",
+  "validated_mae_h": 21.56666161577105,
+  "validated_mae_std_h": 5.005528669418055,
+  "validated_rmse_h": 25.276458777673366,
+  "validated_rmse_std_h": 5.159577401921479,
+  "validation_method": "Leave-One-Failure-Out (4 runs)"
+}

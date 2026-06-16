@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+    <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@700,500,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{background:#1B2027;font-family:'Satoshi',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:#DFD0B8}
+    ::-webkit-scrollbar{width:9px}
+    ::-webkit-scrollbar-thumb{background:#393E46;border-radius:6px}
+    ::-webkit-scrollbar-track{background:#1B2027}
+    a{text-decoration:none}
+    .ms{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;display:inline-block;vertical-align:middle}
+    @keyframes scblink{0%,100%{opacity:1}50%{opacity:.25}}
+    @keyframes scfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+    @keyframes scpulseR{0%{box-shadow:0 0 0 0 rgba(203,91,60,.5)}70%{box-shadow:0 0 0 16px rgba(203,91,60,0)}100%{box-shadow:0 0 0 0 rgba(203,91,60,0)}}
+    @keyframes scspin{to{transform:rotate(360deg)}}
+    @keyframes scdash{to{stroke-dashoffset:-1000}}
+    @keyframes revUp{0%{opacity:0;transform:translateY(30px)}100%{opacity:1;transform:translateY(0)}}
+    [data-reveal]{transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+      h1,h2,h3,h4,h5{font-family:'Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif,system-ui,sans-serif!important}
+    </style>
+</helmet>
+
+<div ref="{{ rootRef }}" style="position:relative">
+
+  <!-- ░░ NAV ░░ -->
+  <nav ref="{{ navRef }}" style="position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(27,32,39,.72);backdrop-filter:blur(12px);border-bottom:1px solid #2f3742">
+    <div style="max-width:1200px;margin:0 auto;height:66px;padding:0 30px;display:flex;align-items:center;justify-content:space-between;gap:20px">
+      <a href="#top" style="display:flex;align-items:center;gap:11px">
+        <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(150deg,#948979,#DFD0B8);display:flex;align-items:center;justify-content:center">
+          <span style="font-weight:800;font-size:17px;color:#1B2027">A</span>
+        </div>
+        <span style="font-weight:700;font-size:16px;color:#DFD0B8">Auguard<span style="color:#948979;font-weight:500"> · PdM</span></span>
+      </a>
+      <div style="display:flex;align-items:center;gap:6px">
+        <a href="#how" style="padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:500;color:#a59c8c">How it works</a>
+        <a href="#demo" style="padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:500;color:#a59c8c">Live demo</a>
+        <a href="#fault" style="padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:500;color:#a59c8c">Fault locator</a>
+        <a href="#team" style="padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:500;color:#a59c8c">Team</a>
+        <a href="Auth.dc.html" style="margin-left:8px;padding:9px 20px;border-radius:9px;background:#DFD0B8;color:#1B2027;font-size:13.5px;font-weight:700">Sign in</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ░░ HERO ░░ -->
+  <section id="top" style="position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden">
+    <canvas ref="{{ heroRef }}" style="position:absolute;inset:0;width:100%;height:100%;display:block"></canvas>
+    <div style="position:absolute;inset:0;background:radial-gradient(1100px 620px at 72% 8%, rgba(148,137,121,.10), transparent 60%),linear-gradient(180deg, rgba(27,32,39,.55) 0%, rgba(27,32,39,.2) 38%, rgba(27,32,39,.82) 84%, #1B2027 100%)"></div>
+    <div style="position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:0 30px;width:100%">
+      <div style="max-width:760px">
+        <div style="display:inline-flex;align-items:center;gap:9px;padding:7px 15px;border:1px solid #393E46;border-radius:999px;background:rgba(34,40,49,.6);backdrop-filter:blur(6px);margin-bottom:28px">
+          <span style="width:7px;height:7px;border-radius:50%;background:#AEBC74;animation:scblink 1.5s infinite"></span>
+          <span style="font-size:11.5px;font-weight:600;letter-spacing:.16em;color:#cabfa6;text-transform:uppercase">AI Predictive Maintenance</span>
+        </div>
+        <h1 style="font-size:clamp(42px,6.4vw,82px);font-weight:800;line-height:1.02;letter-spacing:-.035em;color:#DFD0B8;text-wrap:balance">Predict the failure<br>before it happens.</h1>
+        <p style="margin-top:26px;font-size:clamp(16px,1.4vw,19px);line-height:1.6;color:#a59c8c;max-width:560px;font-weight:400">Auguard reads every sensor on a metro air compressor, catches anomalies the moment behaviour drifts, and tells your team exactly which part to inspect — long before a breakdown reaches the platform.</p>
+        <div style="margin-top:38px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+          <a href="Auth.dc.html" style="display:inline-flex;align-items:center;gap:9px;padding:15px 28px;border-radius:11px;background:#DFD0B8;color:#1B2027;font-size:15px;font-weight:700">Get started <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:19px">arrow_forward</span></a>
+          <a href="#demo" style="display:inline-flex;align-items:center;gap:9px;padding:15px 26px;border-radius:11px;border:1px solid #4a5160;background:rgba(34,40,49,.5);color:#DFD0B8;font-size:15px;font-weight:600">See it live <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:19px">play_circle</span></a>
+        </div>
+      </div>
+    </div>
+    <a href="#how" style="position:absolute;bottom:30px;left:50%;transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:8px;animation:scfloat 2.4s ease-in-out infinite">
+      <span style="font-size:10.5px;font-weight:600;letter-spacing:.2em;color:#7c756a;text-transform:uppercase">Scroll</span>
+      <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:22px;color:#948979">keyboard_arrow_down</span>
+    </a>
+  </section>
+
+  <!-- ░░ PROBLEM ░░ -->
+  <section style="max-width:1100px;margin:0 auto;padding:130px 30px 90px;scroll-margin-top:80px">
+    <span data-reveal style="display:block;font-size:12px;font-weight:600;letter-spacing:.2em;color:#948979;text-transform:uppercase;margin-bottom:22px">The problem</span>
+    <h2 data-reveal style="font-size:clamp(28px,3.6vw,46px);font-weight:700;line-height:1.14;letter-spacing:-.02em;color:#DFD0B8;max-width:880px;text-wrap:balance">Most compressor failures send warning signs for days. Reactive maintenance waits for the breakdown anyway.</h2>
+    <div style="margin-top:64px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:26px">
+        <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:30px;color:#E0987F">block</span>
+        <h3 style="margin-top:16px;font-size:17px;font-weight:600;color:#DFD0B8">Unplanned downtime</h3>
+        <p style="margin-top:9px;font-size:14px;line-height:1.6;color:#948979">A single failed compressor can pull a train from service and stall an entire line during peak hours.</p>
+      </div>
+      <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:26px">
+        <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:30px;color:#E4C281">visibility_off</span>
+        <h3 style="margin-top:16px;font-size:17px;font-weight:600;color:#DFD0B8">Hidden warning signs</h3>
+        <p style="margin-top:9px;font-size:14px;line-height:1.6;color:#948979">Pressure and temperature drift well before failure — but periodic manual checks miss the pattern.</p>
+      </div>
+      <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:26px">
+        <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:30px;color:#948979">payments</span>
+        <h3 style="margin-top:16px;font-size:17px;font-weight:600;color:#DFD0B8">Costly, reactive repairs</h3>
+        <p style="margin-top:9px;font-size:14px;line-height:1.6;color:#948979">Fixing after the fact costs far more — in parts, labour and lost service — than acting on an early signal.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ HOW IT WORKS ░░ -->
+  <section id="how" style="background:#1e242d;border-top:1px solid #262d38;border-bottom:1px solid #262d38;scroll-margin-top:0">
+    <div style="max-width:1100px;margin:0 auto;padding:120px 30px">
+      <span data-reveal style="display:block;font-size:12px;font-weight:600;letter-spacing:.2em;color:#948979;text-transform:uppercase;margin-bottom:18px">How it works</span>
+      <h2 data-reveal style="font-size:clamp(28px,3.6vw,46px);font-weight:700;line-height:1.12;letter-spacing:-.02em;color:#DFD0B8;max-width:700px">From raw sensor data to the right fix — automatically.</h2>
+      <div style="margin-top:66px;display:grid;grid-template-columns:repeat(3,1fr);gap:22px">
+        <div data-reveal style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="font-size:13px;font-weight:700;color:#7c756a;letter-spacing:.1em">01</span>
+            <div style="flex:1;height:1px;background:#333b45"></div>
+          </div>
+          <div style="width:52px;height:52px;border-radius:13px;background:rgba(148,137,121,.14);border:1px solid #393E46;display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:26px;color:#DFD0B8">sensors</span></div>
+          <h3 style="font-size:19px;font-weight:600;color:#DFD0B8">Sense</h3>
+          <p style="font-size:14.5px;line-height:1.6;color:#948979">Fifteen analog and digital channels — pressure, motor current, oil temperature and more — stream continuously from every compressor unit.</p>
+        </div>
+        <div data-reveal style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="font-size:13px;font-weight:700;color:#7c756a;letter-spacing:.1em">02</span>
+            <div style="flex:1;height:1px;background:#333b45"></div>
+          </div>
+          <div style="width:52px;height:52px;border-radius:13px;background:rgba(217,169,74,.14);border:1px solid rgba(217,169,74,.32);display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:26px;color:#E4C281">radar</span></div>
+          <h3 style="font-size:19px;font-weight:600;color:#DFD0B8">Detect</h3>
+          <p style="font-size:14.5px;line-height:1.6;color:#948979">AI watches every channel and flags anomalies the instant behaviour drifts from normal — then pinpoints the failing component and forecasts time left.</p>
+        </div>
+        <div data-reveal style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="font-size:13px;font-weight:700;color:#7c756a;letter-spacing:.1em">03</span>
+            <div style="flex:1;height:1px;background:#333b45"></div>
+          </div>
+          <div style="width:52px;height:52px;border-radius:13px;background:rgba(123,138,67,.14);border:1px solid rgba(123,138,67,.32);display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:26px;color:#C6D196">build</span></div>
+          <h3 style="font-size:19px;font-weight:600;color:#DFD0B8">Act</h3>
+          <p style="font-size:14.5px;line-height:1.6;color:#948979">Your team gets a prioritised alert naming the exact part to inspect and the recommended action — with time to fix it before failure.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ LIVE DEMO ░░ -->
+  <section id="demo" style="max-width:1140px;margin:0 auto;padding:130px 30px;scroll-margin-top:60px">
+    <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:50px;align-items:center">
+      <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:20px;padding:24px 24px 20px;box-shadow:0 30px 70px rgba(0,0,0,.35)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <span style="font-size:11px;font-weight:600;letter-spacing:.16em;color:#948979;text-transform:uppercase">Anomaly Score · Live</span>
+            <span style="font-size:12.5px;color:#6f6a60">Isolation Forest detector</span>
+          </div>
+          <span ref="{{ statusRef }}" style="font-size:11.5px;font-weight:700;letter-spacing:.1em;padding:6px 13px;border-radius:999px;background:rgba(123,138,67,.14);color:#C6D196;border:1px solid rgba(123,138,67,.4)">NORMAL</span>
+        </div>
+        <canvas ref="{{ demoRef }}" style="width:100%;height:240px;display:block"></canvas>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:11px;color:#6f6a60">
+          <span>−4 min</span>
+          <span style="color:#E0987F">— — threshold 0.65</span>
+          <span>now</span>
+        </div>
+      </div>
+      <div data-reveal style="">
+        <span style="display:block;font-size:12px;font-weight:600;letter-spacing:.2em;color:#948979;text-transform:uppercase;margin-bottom:18px">Live detection</span>
+        <h2 style="font-size:clamp(26px,3vw,40px);font-weight:700;line-height:1.14;letter-spacing:-.02em;color:#DFD0B8">Watch the score climb from calm to critical.</h2>
+        <p style="margin-top:18px;font-size:15px;line-height:1.65;color:#948979">As sensor behaviour drifts, the anomaly score rises. The moment it crosses the threshold, Auguard fires a critical alert — automatically, with no human watching the dial.</p>
+        <div style="margin-top:26px;display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:12px;background:rgba(123,138,67,.1);border:1px solid rgba(123,138,67,.3)">
+          <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:24px;color:#C6D196">verified</span>
+          <span style="font-size:14px;color:#cabfa6;line-height:1.5"><b style="color:#DFD0B8;font-weight:700">99.5%</b> of failures caught in testing.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ FAULT LOCALIZATION ░░ -->
+  <section id="fault" style="background:#1e242d;border-top:1px solid #262d38;border-bottom:1px solid #262d38;scroll-margin-top:0">
+    <div style="max-width:1140px;margin:0 auto;padding:120px 30px">
+      <div style="display:grid;grid-template-columns:.9fr 1.1fr;gap:50px;align-items:center">
+        <div data-reveal style="">
+          <span style="display:block;font-size:12px;font-weight:600;letter-spacing:.2em;color:#948979;text-transform:uppercase;margin-bottom:18px">Fault locator</span>
+          <h2 style="font-size:clamp(26px,3vw,40px);font-weight:700;line-height:1.14;letter-spacing:-.02em;color:#DFD0B8">Not just “something’s wrong.” The exact part.</h2>
+          <p style="margin-top:18px;font-size:15px;line-height:1.65;color:#948979">Auguard traces an anomaly back to the sensors driving it — so a technician walks up to the unit knowing precisely where to look, not guessing.</p>
+          <div style="margin-top:28px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <span style="font-size:13px;font-weight:600;color:#DFD0B8;width:110px">TP2 · Compressor</span>
+              <div style="flex:1;height:9px;border-radius:999px;background:#161c24;overflow:hidden"><div data-bar="88%" style="width:88%;height:100%;border-radius:999px;background:linear-gradient(90deg,#CB5B3C,#E0987F)"></div></div>
+              <span style="font-size:12.5px;color:#E0987F;font-weight:600;width:34px;text-align:right">0.71</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <span style="font-size:13px;font-weight:600;color:#DFD0B8;width:110px">H1 · Pressure</span>
+              <div style="flex:1;height:9px;border-radius:999px;background:#161c24;overflow:hidden"><div data-bar="67%" style="width:67%;height:100%;border-radius:999px;background:linear-gradient(90deg,#CB5B3C,#E0987F)"></div></div>
+              <span style="font-size:12.5px;color:#E0987F;font-weight:600;width:34px;text-align:right">0.54</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px">
+              <span style="font-size:13px;font-weight:600;color:#cabfa6;width:110px">DV · Pressure</span>
+              <div style="flex:1;height:9px;border-radius:999px;background:#161c24;overflow:hidden"><div data-bar="48%" style="width:48%;height:100%;border-radius:999px;background:linear-gradient(90deg,#948979,#cabfa6)"></div></div>
+              <span style="font-size:12.5px;color:#948979;font-weight:600;width:34px;text-align:right">0.39</span>
+            </div>
+          </div>
+        </div>
+        <div data-reveal style="">
+          <svg viewBox="0 0 520 420" style="width:100%;height:auto;display:block">
+            <line x1="260" y1="210" x2="120" y2="96" stroke="#CB5B3C" stroke-width="1.6" stroke-dasharray="4 5" opacity="0.6"></line>
+            <line x1="260" y1="210" x2="400" y2="96" stroke="#CB5B3C" stroke-width="1.6" stroke-dasharray="4 5" opacity="0.6"></line>
+            <line x1="260" y1="210" x2="120" y2="324" stroke="#3a4654" stroke-width="1.4" stroke-dasharray="4 5"></line>
+            <line x1="260" y1="210" x2="400" y2="324" stroke="#3a4654" stroke-width="1.4" stroke-dasharray="4 5"></line>
+            <rect x="196" y="150" width="128" height="120" rx="18" fill="#222831" stroke="#4a5160" stroke-width="1.5"></rect>
+            <rect x="214" y="172" width="92" height="10" rx="5" fill="#393E46"></rect>
+            <rect x="214" y="192" width="64" height="8" rx="4" fill="#333b45"></rect>
+            <circle cx="260" cy="232" r="15" fill="none" stroke="#948979" stroke-width="2"></circle>
+            <circle cx="260" cy="232" r="6" fill="#948979"></circle>
+            <text x="260" y="292" text-anchor="middle" fill="#7c756a" font-family='Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif font-size="11" font-weight="600" letter-spacing="1">APU UNIT</text>
+            <g>
+              <circle cx="120" cy="96" r="13" fill="#CB5B3C" style="animation:scpulseR 1.9s infinite"></circle>
+              <circle cx="120" cy="96" r="26" fill="none" stroke="rgba(203,91,60,.4)" stroke-width="1.4"></circle>
+            </g>
+            <text x="120" y="56" text-anchor="middle" fill="#E0987F" font-family='Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif font-size="13" font-weight="600">TP2</text>
+            <text x="120" y="140" text-anchor="middle" fill="#7c756a" font-family='Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif font-size="10.5">Compressor</text>
+            <g>
+              <circle cx="400" cy="96" r="13" fill="#CB5B3C" style="animation:scpulseR 1.9s infinite .4s"></circle>
+              <circle cx="400" cy="96" r="26" fill="none" stroke="rgba(203,91,60,.4)" stroke-width="1.4"></circle>
+            </g>
+            <text x="400" y="56" text-anchor="middle" fill="#E0987F" font-family='Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif font-size="13" font-weight="600">H1</text>
+            <text x="400" y="140" text-anchor="middle" fill="#7c756a" font-family='Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif font-size="10.5">Pressure</text>
+            <circle cx="120" cy="324" r="11" fill="#2a3340" stroke="#7b8a43" stroke-width="2"></circle>
+            <circle cx="120" cy="324" r="4" fill="#AEBC74"></circle>
+            <text x="120" y="362" text-anchor="middle" fill="#948979" font-family='Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif font-size="12">Oil Temp</text>
+            <text x="120" y="378" text-anchor="middle" fill="#5d6b3a" font-family='Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif font-size="10" font-weight="600">NORMAL</text>
+            <circle cx="400" cy="324" r="11" fill="#2a3340" stroke="#7b8a43" stroke-width="2"></circle>
+            <circle cx="400" cy="324" r="4" fill="#AEBC74"></circle>
+            <text x="400" y="362" text-anchor="middle" fill="#948979" font-family='Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif font-size="12">Motor Current</text>
+            <text x="400" y="378" text-anchor="middle" fill="#5d6b3a" font-family='Neue Haas Grotesk Display Pro','Neue Haas Grotesk','Helvetica Neue',Helvetica,Arial,sans-serif font-size="10" font-weight="600">NORMAL</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ ROLES ░░ -->
+  <section id="roles" style="max-width:1100px;margin:0 auto;padding:130px 30px 90px;scroll-margin-top:80px">
+    <span data-reveal style="display:block;font-size:12px;font-weight:600;letter-spacing:.2em;color:#948979;text-transform:uppercase;margin-bottom:18px">Built for the whole team</span>
+    <h2 data-reveal style="font-size:clamp(28px,3.6vw,46px);font-weight:700;line-height:1.12;letter-spacing:-.02em;color:#DFD0B8;max-width:640px">Role-based access, from control room to workshop.</h2>
+    <div style="margin-top:60px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:28px">
+        <div style="width:48px;height:48px;border-radius:12px;background:rgba(148,137,121,.16);border:1px solid #393E46;display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:25px;color:#DFD0B8">admin_panel_settings</span></div>
+        <h3 style="margin-top:18px;font-size:18px;font-weight:700;color:#DFD0B8">Admin</h3>
+        <p style="margin-top:9px;font-size:14px;line-height:1.6;color:#948979">Full oversight — create and escalate alerts, assign work, broadcast notifications and manage every account.</p>
+      </div>
+      <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:28px">
+        <div style="width:48px;height:48px;border-radius:12px;background:rgba(217,169,74,.14);border:1px solid rgba(217,169,74,.32);display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:25px;color:#E4C281">build</span></div>
+        <h3 style="margin-top:18px;font-size:18px;font-weight:700;color:#DFD0B8">Technician</h3>
+        <p style="margin-top:9px;font-size:14px;line-height:1.6;color:#948979">Sees alerts assigned to them, acknowledges the job, and resolves it once the fix is verified on the unit.</p>
+      </div>
+      <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:28px">
+        <div style="width:48px;height:48px;border-radius:12px;background:rgba(123,138,67,.14);border:1px solid rgba(123,138,67,.32);display:flex;align-items:center;justify-content:center"><span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:25px;color:#C6D196">monitoring</span></div>
+        <h3 style="margin-top:18px;font-size:18px;font-weight:700;color:#DFD0B8">Operator</h3>
+        <p style="margin-top:9px;font-size:14px;line-height:1.6;color:#948979">Monitors live dashboards and assigned alerts, keeping an eye on fleet health through every shift.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ TEAM ░░ -->
+  <section id="team" style="background:#1e242d;border-top:1px solid #262d38;scroll-margin-top:0">
+    <div style="max-width:1100px;margin:0 auto;padding:120px 30px">
+      <span data-reveal style="display:block;font-size:12px;font-weight:600;letter-spacing:.2em;color:#948979;text-transform:uppercase;margin-bottom:18px">The team</span>
+      <h2 data-reveal style="font-size:clamp(28px,3.6vw,46px);font-weight:700;line-height:1.12;letter-spacing:-.02em;color:#DFD0B8;max-width:640px">The people behind Auguard.</h2>
+      <div style="margin-top:58px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px">
+        <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+          <div style="width:66px;height:66px;border-radius:50%;background:linear-gradient(150deg,#393E46,#948979);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:#DFD0B8">MH</div>
+          <div><div style="font-size:14.5px;font-weight:600;color:#DFD0B8">Mohamed Hamed</div><div style="margin-top:3px;font-size:11.5px;color:#7c756a">SmartMetro Team</div></div>
+        </div>
+        <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+          <div style="width:66px;height:66px;border-radius:50%;background:linear-gradient(150deg,#3a3010,#c2913a);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:#E4C281">EM</div>
+          <div><div style="font-size:14.5px;font-weight:600;color:#DFD0B8">Eman Mousa</div><div style="margin-top:3px;font-size:11.5px;color:#7c756a">SmartMetro Team</div></div>
+        </div>
+        <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+          <div style="width:66px;height:66px;border-radius:50%;background:linear-gradient(150deg,#1e2a10,#7b8a43);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:#C6D196">EH</div>
+          <div><div style="font-size:14.5px;font-weight:600;color:#DFD0B8">Eman Hussien</div><div style="margin-top:3px;font-size:11.5px;color:#7c756a">SmartMetro Team</div></div>
+        </div>
+        <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+          <div style="width:66px;height:66px;border-radius:50%;background:linear-gradient(150deg,#4a2820,#CB5B3C);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:#E0987F">HG</div>
+          <div><div style="font-size:14.5px;font-weight:600;color:#DFD0B8">Hana Gohar</div><div style="margin-top:3px;font-size:11.5px;color:#7c756a">SmartMetro Team</div></div>
+        </div>
+        <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+          <div style="width:66px;height:66px;border-radius:50%;background:linear-gradient(150deg,#393E46,#948979);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:#DFD0B8">MW</div>
+          <div><div style="font-size:14.5px;font-weight:600;color:#DFD0B8">Mohamed Wael</div><div style="margin-top:3px;font-size:11.5px;color:#7c756a">SmartMetro Team</div></div>
+        </div>
+        <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+          <div style="width:66px;height:66px;border-radius:50%;background:linear-gradient(150deg,#3a3010,#c2913a);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:#E4C281">FS</div>
+          <div><div style="font-size:14.5px;font-weight:600;color:#DFD0B8">Fatema Salah</div><div style="margin-top:3px;font-size:11.5px;color:#7c756a">SmartMetro Team</div></div>
+        </div>
+        <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+          <div style="width:66px;height:66px;border-radius:50%;background:linear-gradient(150deg,#1e2a10,#7b8a43);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:#C6D196">TA</div>
+          <div><div style="font-size:14.5px;font-weight:600;color:#DFD0B8">Tasneem Almorsi</div><div style="margin-top:3px;font-size:11.5px;color:#7c756a">SmartMetro Team</div></div>
+        </div>
+        <div data-reveal style="background:#222831;border:1px solid #2f3742;border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px">
+          <div style="width:66px;height:66px;border-radius:50%;background:linear-gradient(150deg,#4a2820,#CB5B3C);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:#E0987F">SA</div>
+          <div><div style="font-size:14.5px;font-weight:600;color:#DFD0B8">Samar Abo Samra</div><div style="margin-top:3px;font-size:11.5px;color:#7c756a">SmartMetro Team</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ FOOTER CTA ░░ -->
+  <section style="position:relative;overflow:hidden">
+    <div style="max-width:1100px;margin:0 auto;padding:140px 30px 70px;text-align:center">
+      <h2 data-reveal style="font-size:clamp(32px,4.6vw,60px);font-weight:800;line-height:1.06;letter-spacing:-.03em;color:#DFD0B8;max-width:760px;margin:0 auto;text-wrap:balance">Stop reacting to breakdowns. Start predicting them.</h2>
+      <div data-reveal style="margin-top:38px;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap">
+        <a href="Auth.dc.html" style="display:inline-flex;align-items:center;gap:9px;padding:15px 30px;border-radius:11px;background:#DFD0B8;color:#1B2027;font-size:15px;font-weight:700">Get started <span style="font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 300;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;vertical-align:middle;font-size:19px">arrow_forward</span></a>
+        <a href="Dashboard.dc.html" style="display:inline-flex;align-items:center;gap:9px;padding:15px 28px;border-radius:11px;border:1px solid #4a5160;background:transparent;color:#DFD0B8;font-size:15px;font-weight:600">Explore the dashboard</a>
+      </div>
+    </div>
+    <div style="border-top:1px solid #262d38">
+      <div style="max-width:1100px;margin:0 auto;padding:30px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:11px">
+          <div style="width:30px;height:30px;border-radius:8px;background:linear-gradient(150deg,#948979,#DFD0B8);display:flex;align-items:center;justify-content:center"><span style="font-weight:800;font-size:14px;color:#1B2027">A</span></div>
+          <span style="font-size:13.5px;font-weight:600;color:#cabfa6">Auguard · SmartMetro</span>
+        </div>
+        <span style="font-size:12px;color:#6f6a60">Predictive Maintenance · MetroPT-3 · Graduation Project 2025</span>
+      </div>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.onScrollReveal=()=>this.checkReveals();
+    this.setRootRef=(el)=>{this.rootEl=el;};
+    this.setNavRef=(el)=>{this.navEl=el;};
+    this.setHeroRef=(el)=>{this.heroEl=el;};
+    this.setDemoRef=(el)=>{this.demoEl=el;};
+    this.setStatusRef=(el)=>{this.statusEl=el;};
+    this.loop=this.loop.bind(this);
+    this.scoreBuf=[];
+    this.lastPush=0;
+  }
+
+  componentDidMount(){
+    this.t0=performance.now();
+    for(let i=0;i<92;i++) this.scoreBuf.push(this.scoreAt((i/92)*100));
+    this.raf=requestAnimationFrame(this.loop);
+    const setup=()=>{
+      const els=Array.from((this.rootEl||document).querySelectorAll('[data-reveal]'));
+      this.revealEls=els;
+      const vh=window.innerHeight;
+      els.forEach(el=>{ if(el.getBoundingClientRect().top > vh*0.86){ el.style.opacity='0'; el.style.transform='translateY(30px)'; } });
+      this.checkReveals();
+    };
+    setTimeout(setup, 40);
+    window.addEventListener('scroll', this.onScrollReveal, {passive:true});
+    window.addEventListener('resize', this.onScrollReveal, {passive:true});
+    // failsafe: never leave content hidden even if scroll/timers misbehave
+    setTimeout(()=>{ document.querySelectorAll('[data-reveal]').forEach(el=>{el.style.opacity='1';el.style.transform='none';}); }, 4200);
+  }
+  componentWillUnmount(){
+    cancelAnimationFrame(this.raf);
+    window.removeEventListener('scroll', this.onScrollReveal);
+    window.removeEventListener('resize', this.onScrollReveal);
+  }
+
+  navUpdate(){
+    if(!this.navEl) return;
+    const y=window.scrollY||window.pageYOffset||(document.scrollingElement?document.scrollingElement.scrollTop:0)||0;
+    if(y>40){ this.navEl.style.background='rgba(27,32,39,.86)'; this.navEl.style.backdropFilter='blur(14px)'; this.navEl.style.borderBottomColor='#2f3742'; }
+    else { this.navEl.style.background='transparent'; this.navEl.style.backdropFilter='blur(0px)'; this.navEl.style.borderBottomColor='transparent'; }
+  }
+
+  checkReveals(){
+    if(!this.revealEls || !this.revealEls.length) return;
+    const trigger=window.innerHeight*0.9;
+    const remain=[];
+    for(const el of this.revealEls){
+      if(el.getBoundingClientRect().top < trigger){ el.style.opacity='1'; el.style.transform='none'; }
+      else remain.push(el);
+    }
+    this.revealEls=remain;
+  }
+
+  clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+  lerp(a,b,t){ return a+(b-a)*this.clamp(t,0,1); }
+
+  scoreAt(p){
+    let base;
+    if(p<46) base=0.20+0.04*Math.sin(p*0.5);
+    else if(p<72) base=this.lerp(0.24,0.70,(p-46)/26);
+    else base=this.lerp(0.70,0.93,(p-72)/28);
+    const amp=p<46?0.022:0.055;
+    return this.clamp(base+(Math.random()-0.5)*amp*2+0.015*Math.sin(p*1.4),0,1);
+  }
+
+  loop(){
+    try{ this.drawHero(); this.drawDemo(); }catch(e){}
+    this.raf=requestAnimationFrame(this.loop);
+  }
+
+  drawHero(){
+    const c=this.heroEl; if(!c) return;
+    const W=c.clientWidth, H=c.clientHeight; if(!W||!H) return;
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    if(c.width!==Math.round(W*dpr)) c.width=Math.round(W*dpr);
+    if(c.height!==Math.round(H*dpr)) c.height=Math.round(H*dpr);
+    const ctx=c.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H);
+    const t=(performance.now()-this.t0)/1000;
+    const cols=50, rows=34, focal=300, camY=66, stepX=28, stepZ=15;
+    const cx=W*0.5, horizon=H*0.40;
+    const pts=[];
+    for(let j=0;j<rows;j++){
+      const row=[]; const z=22+j*stepZ; const scale=focal/z;
+      for(let i=0;i<cols;i++){
+        const wx=(i-cols/2)*stepX;
+        const wy=Math.sin(i*0.34+t*1.05)*7 + Math.cos(j*0.5-t*0.85)*9 + Math.sin((i+j)*0.26+t*0.7)*6;
+        row.push({x:cx+wx*scale, y:horizon+(camY-wy)*scale});
+      }
+      pts.push(row);
+    }
+    const hl=(Math.sin(t*0.45)*0.5+0.5)*rows;
+    for(let j=0;j<rows;j++){
+      const near=1-j/rows;
+      let a=near*0.46+0.03;
+      let col='223,208,184';
+      const d=Math.abs(j-hl);
+      if(d<2.4){ a=Math.min(0.6,a+0.26); col='217,169,74'; }
+      ctx.beginPath();
+      for(let i=0;i<cols;i++){ const p=pts[j][i]; if(i===0)ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); }
+      ctx.strokeStyle='rgba('+col+','+a+')';
+      ctx.lineWidth=1; ctx.stroke();
+    }
+    for(let i=0;i<cols;i+=2){
+      ctx.beginPath();
+      for(let j=0;j<rows;j++){ const p=pts[j][i]; if(j===0)ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); }
+      ctx.strokeStyle='rgba(148,137,121,0.06)';
+      ctx.lineWidth=1; ctx.stroke();
+    }
+  }
+
+  drawDemo(){
+    const c=this.demoEl; if(!c) return;
+    const W=c.clientWidth, H=c.clientHeight; if(!W||!H) return;
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    if(c.width!==Math.round(W*dpr)) c.width=Math.round(W*dpr);
+    if(c.height!==Math.round(H*dpr)) c.height=Math.round(H*dpr);
+    const ctx=c.getContext('2d');
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H);
+    const now=performance.now();
+    const t=(now-this.t0)/1000;
+    const phase=(t%15)/15*100;
+    if(now-this.lastPush>52){ this.scoreBuf.push(this.scoreAt(phase)); if(this.scoreBuf.length>92) this.scoreBuf.shift(); this.lastPush=now; }
+    const buf=this.scoreBuf, n=buf.length;
+    const padB=18, padT=10, gh=H-padB-padT;
+    const X=i=> (i/(n-1))*W;
+    const Y=v=> padT+(1-v)*gh;
+    const sc=buf[n-1];
+    const zone= sc>=0.65?'rust' : sc>=0.5?'ochre' : 'olive';
+    const colMap={olive:'#AEBC74',ochre:'#D9A94A',rust:'#CB5B3C'};
+    const lineCol=colMap[zone];
+    // gridlines
+    ctx.strokeStyle='rgba(57,62,70,0.5)'; ctx.lineWidth=1;
+    [0.25,0.5,0.75].forEach(g=>{ ctx.beginPath(); ctx.moveTo(0,padT+g*gh); ctx.lineTo(W,padT+g*gh); ctx.stroke(); });
+    // danger zone above threshold
+    const ty=Y(0.65);
+    ctx.fillStyle='rgba(203,91,60,0.06)'; ctx.fillRect(0,padT,W,ty-padT);
+    // area
+    ctx.beginPath(); ctx.moveTo(0,Y(buf[0]));
+    for(let i=1;i<n;i++) ctx.lineTo(X(i),Y(buf[i]));
+    ctx.lineTo(W,H-padB); ctx.lineTo(0,H-padB); ctx.closePath();
+    const grad=ctx.createLinearGradient(0,padT,0,H);
+    grad.addColorStop(0, zone==='rust'?'rgba(203,91,60,.28)':zone==='ochre'?'rgba(217,169,74,.24)':'rgba(174,188,116,.22)');
+    grad.addColorStop(1,'rgba(34,40,49,0)');
+    ctx.fillStyle=grad; ctx.fill();
+    // line
+    ctx.beginPath(); ctx.moveTo(0,Y(buf[0]));
+    for(let i=1;i<n;i++) ctx.lineTo(X(i),Y(buf[i]));
+    ctx.strokeStyle=lineCol; ctx.lineWidth=2.4; ctx.lineJoin='round'; ctx.stroke();
+    // threshold
+    ctx.beginPath(); ctx.setLineDash([6,5]); ctx.moveTo(0,ty); ctx.lineTo(W,ty);
+    ctx.strokeStyle='rgba(203,91,60,.7)'; ctx.lineWidth=1.4; ctx.stroke(); ctx.setLineDash([]);
+    // head dot
+    const hx=X(n-1), hy=Y(sc);
+    ctx.beginPath(); ctx.arc(hx,hy,8,0,Math.PI*2); ctx.fillStyle=zone==='rust'?'rgba(203,91,60,.25)':'rgba(174,188,116,.2)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(hx,hy,4,0,Math.PI*2); ctx.fillStyle=lineCol; ctx.strokeStyle='#222831'; ctx.lineWidth=2; ctx.fill(); ctx.stroke();
+    // status badge sync
+    if(this.statusEl){
+      const label= sc>=0.65?'ANOMALY' : sc>=0.5?'DRIFT' : 'NORMAL';
+      if(this._lastStatus!==label){
+        this._lastStatus=label;
+        this.statusEl.textContent=label;
+        if(label==='ANOMALY'){ this.statusEl.style.background='rgba(203,91,60,.16)'; this.statusEl.style.color='#E0987F'; this.statusEl.style.borderColor='rgba(203,91,60,.45)'; }
+        else if(label==='DRIFT'){ this.statusEl.style.background='rgba(217,169,74,.14)'; this.statusEl.style.color='#E4C281'; this.statusEl.style.borderColor='rgba(217,169,74,.4)'; }
+        else { this.statusEl.style.background='rgba(123,138,67,.14)'; this.statusEl.style.color='#C6D196'; this.statusEl.style.borderColor='rgba(123,138,67,.4)'; }
+      }
+    }
+  }
+
+  renderVals(){
+    return {
+      rootRef:this.setRootRef,
+      navRef:this.setNavRef,
+      heroRef:this.setHeroRef,
+      demoRef:this.setDemoRef,
+      statusRef:this.setStatusRef,
+    };
+  }
+}
+</script>
+</body>
+</html>

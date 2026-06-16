@@ -1,0 +1,40 @@
+# ── Python ──────────────────────────────────────────────────────────────────
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# ── Environment / secrets ────────────────────────────────────────────────────
+.env
+.env.*
+*.local
+
+# ── Dataset (1.5 M rows — download separately from MetroPT-3) ───────────────
+AI/dataset/
+AI/preprocessed_data/
+
+# ── Preprocessed / intermediate artefacts ───────────────────────────────────
+AI-PdM.zip
+
+# ── Frontend ─────────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+
+# ── Internal session / planning docs (not for public repo) ──────────────────
+MOHAMED_CONTEXT.md
+PROJECT_STATUS.md
+SMARTMETRO_PLAN.md
+SYSTEM_EXPLAINED.md
+CLAUDE.md
+AI/CLAUDE.md
+app/ml/SNAPSHOT_CONTRACT.md
+
+# ── IDE / OS ─────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

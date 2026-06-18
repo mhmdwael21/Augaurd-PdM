@@ -5,6 +5,7 @@ import Auth from './pages/Auth'
 import Dashboard from './pages/Dashboard'
 import Alerts from './pages/Alerts'
 import Notifications from './pages/Notifications'
+import Reports from './pages/Reports'
 import Users from './pages/Users'
 
 function RequireAuth({ children }) {
@@ -30,6 +31,7 @@ function AppRoutes() {
       <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
       <Route path="/alerts" element={<RequireAuth><Alerts /></RequireAuth>} />
       <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
+      <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />
       <Route path="/users" element={<RequireAdmin><Users /></RequireAdmin>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

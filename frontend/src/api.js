@@ -81,6 +81,18 @@ export const escalateAlert    = (id)            =>
   DEMO ? mock.mockEscalateAlert(id)
        : api(`/alerts/${id}/escalate`, { method: 'PUT' })
 
+// Reports / History (read-only)
+export const getReportsAlerts = (params = {}) => {
+  const qs = new URLSearchParams()
+  if (params.from_date) qs.set('from_date', params.from_date)
+  if (params.to_date)   qs.set('to_date',   params.to_date)
+  if (params.status)    qs.set('status',     params.status)
+  if (params.severity)  qs.set('severity',   params.severity)
+  const q = qs.toString()
+  return api('/reports/alerts' + (q ? '?' + q : ''))
+}
+export const getReportAlert = (id) => api(`/reports/alerts/${id}`)
+
 // Notifications
 export const getNotifications = () =>
   DEMO ? mock.mockGetNotifications()

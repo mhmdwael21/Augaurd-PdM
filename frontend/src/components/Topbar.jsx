@@ -33,6 +33,7 @@ export default function Topbar({ unreadCount = 0 }) {
     { label: 'Dashboard',     path: '/dashboard' },
     { label: 'Alerts',        path: '/alerts' },
     { label: 'Notifications', path: '/notifications' },
+    { label: 'Reports',       path: '/reports' },
     { label: 'Users',         path: '/users', adminOnly: true },
   ]
 

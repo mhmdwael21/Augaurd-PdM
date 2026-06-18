@@ -81,6 +81,8 @@ export default function Dashboard() {
   const { isMobile } = useResponsive()
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState(null)
+  const [liveReplay, setLiveReplay] = useState(null)  // instant feedback before next poll
+  const liveTimer = useRef(null)                       // safety net to drop stale optimistic state
   const seenAlerts = useRef(null)
 
   const { data: snap } = usePoll(getDashboard, 1000)
@@ -103,10 +105,40 @@ export default function Dashboard() {
   }, [alerts])
 
   async function ctrl(body) {
-    try { setBusy(true); await controlReplay(body) } catch (e) { /* ignore */ } finally { setBusy(false) }
+    try {
+      setBusy(true)
+      const res = await controlReplay(body)
+      // Optimistically reflect the returned control fields so the buttons
+      // update instantly; cleared once the poll confirms (or after a timeout).
+      if (res && (res.scenario !== undefined || res.speed !== undefined || res.playing !== undefined)) {
+        setLiveReplay({ playing: res.playing, speed: res.speed, scenario: res.scenario })
+        // Safety net: a scenario rebuild can take ~1-2 s, so guarantee the
+        // optimistic override is dropped even if the poll never exactly matches.
+        if (liveTimer.current) clearTimeout(liveTimer.current)
+        liveTimer.current = setTimeout(() => setLiveReplay(null), 2500)
+      }
+    } catch (e) { /* ignore */ } finally { setBusy(false) }
   }
 
-  const replay = snap?.replay || { playing: true, speed: 1, scenario: 'F4', cursor: 0, scenario_len: 1 }
+  // Drop the optimistic override once the live snapshot reports the same
+  // control state — from then on the poll is the single source of truth.
+  useEffect(() => {
+    if (!liveReplay || !snap?.replay) return
+    const r = snap.replay
+    if (r.playing === liveReplay.playing &&
+        r.speed === liveReplay.speed &&
+        r.scenario === liveReplay.scenario) {
+      if (liveTimer.current) { clearTimeout(liveTimer.current); liveTimer.current = null }
+      setLiveReplay(null)
+    }
+  }, [snap, liveReplay])
+
+  // Base state always comes from the live poll (so cursor/progress never freeze);
+  // only the three control fields get the brief optimistic override.
+  const base = snap?.replay || { playing: true, speed: 1, scenario: 'F4', cursor: 0, scenario_len: 1 }
+  const replay = liveReplay
+    ? { ...base, playing: liveReplay.playing, speed: liveReplay.speed, scenario: liveReplay.scenario }
+    : base
   const status = snap?.status || 'WARMING'
   const phaseC = PHASE[status] || PHASE.WARMING
   const ready = snap && snap.anomaly
@@ -160,14 +192,14 @@ export default function Dashboard() {
           <div style={{ width: 1, height: 26, background: '#333b45' }} />
           <span style={{ fontSize: 10, letterSpacing: '.14em', color: '#7c756a' }}>SPEED</span>
           <div style={{ display: 'flex', gap: 6 }}>
-            {[0.5, 1, 2, 4].map(s => <SpeedBtn key={s} label={`${s}×`} active={replay.speed === s} onClick={() => ctrl({ speed: s })} disabled={busy} />)}
+            {[0.5, 1, 2, 4].map(s => <SpeedBtn key={s} label={`${s}×`} active={replay.speed === s} onClick={() => ctrl({ speed: s })} disabled={false} />)}
           </div>
 
           <div style={{ width: 1, height: 26, background: '#333b45' }} />
           <span style={{ fontSize: 10, letterSpacing: '.14em', color: '#7c756a' }}>SCENARIO</span>
           <div style={{ display: 'flex', gap: 6 }}>
-            <SpeedBtn label="F3 · KNOWN" active={replay.scenario === 'F3'} onClick={() => ctrl({ scenario: 'F3' })} disabled={busy} />
-            <SpeedBtn label="F4 · UNKNOWN" active={replay.scenario === 'F4'} onClick={() => ctrl({ scenario: 'F4' })} disabled={busy} />
+            <SpeedBtn label="F3 · KNOWN"    active={replay.scenario === 'F3'} onClick={() => ctrl({ scenario: 'F3' })} disabled={false} />
+            <SpeedBtn label="F4 · UNKNOWN"  active={replay.scenario === 'F4'} onClick={() => ctrl({ scenario: 'F4' })} disabled={false} />
           </div>
 
           <div style={{ flex: 1, minWidth: 200, display: 'flex', flexDirection: 'column', gap: 5 }}>

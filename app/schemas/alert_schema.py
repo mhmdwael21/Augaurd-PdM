@@ -63,3 +63,25 @@ class AlertResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AlertHistoryResponse(BaseModel):
+    """Alert representation for the read-only reports/history endpoint.
+
+    Identical to AlertResponse but adds ``assigned_to_username`` resolved
+    from the joined ``assigned_user`` relationship — no extra query needed.
+    """
+
+    id: UUID
+    severity: AlertSeverity
+    timestamp: datetime
+    predicted_failure: str
+    recommended_action: str
+    status: AlertStatus
+    assigned_to: Optional[UUID] = None
+    assigned_to_username: Optional[str] = None
+    anomaly_score: Optional[float] = None
+    created_by: str
+
+    class Config:
+        from_attributes = True

@@ -10,6 +10,7 @@ from app.api.routes.anomaly import router as dashboard_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.dashboard import router as admin_panel_router
 from app.api.routes.notifications import router as notifications_router
+from app.api.routes.reports import router as reports_router
 from app.core.config import MODEL_VERSION, SERVICE_NAME
 from app.core.database import Base, engine
 
@@ -58,3 +59,4 @@ app.include_router(admin_panel_router)
 app.include_router(dashboard_router)
 app.include_router(alerts_router)
 app.include_router(notifications_router)
+app.include_router(reports_router)

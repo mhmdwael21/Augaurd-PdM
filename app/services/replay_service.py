@@ -20,6 +20,7 @@ Concurrency model (single lock, never held during slow work):
   - Every tick is wrapped in try/except: a bad tick is logged + backed off, the
     thread never dies.
 """
+import copy
 import io
 import logging
 import threading
@@ -57,6 +58,7 @@ class ReplayController:
         self._generation = 0
         self._latest = None
         self._rows = {}          # scenario -> list[(ts, row)]  (immutable after load)
+        self._warm = {}          # scenario -> pre-warmed template engine (immutable)
         self._loaded = False
 
     # ── lifecycle ────────────────────────────────────────────────────
@@ -68,7 +70,12 @@ class ReplayController:
             sl = df[(df.index >= a) & (df.index <= b)]
             self._rows[name] = list(zip([str(t) for t in sl.index],
                                         sl[FEATURE_COLS].to_numpy(dtype="float32")))
-        self._engine = self._build_engine(self._scenario)
+        # Pre-warm one template engine per scenario (~10 s each, paid once at
+        # startup). Reset / scenario switch then CLONES a template in well under
+        # a millisecond — so the controls respond instantly at runtime.
+        for name in self.SCENARIOS:
+            self._warm[name] = self._build_engine(name)
+        self._engine = self._clone_engine(self._warm[self._scenario])
         self._cursor = self.WARMUP % len(self._rows[self._scenario])
         self._loaded = True
 
@@ -78,6 +85,23 @@ class ReplayController:
         for ts, row in self._rows[scenario][:self.WARMUP]:
             eng.push(row, ts=ts)
         return eng
+
+    @staticmethod
+    def _clone_engine(template):
+        """A fresh engine identical to a freshly-warmed one — in well under 1 ms.
+
+        Deep-copies the template's warmed state (buffers, history, state machine)
+        but SHARES the heavy, read-only model registry: it is detached during the
+        copy so ``deepcopy`` doesn't walk the models, then re-attached to both.
+        """
+        reg = template.reg
+        template.reg = None
+        try:
+            clone = copy.deepcopy(template)
+        finally:
+            template.reg = reg
+        clone.reg = reg
+        return clone
 
     def start(self):
         self.load()
@@ -126,22 +150,24 @@ class ReplayController:
     # ── controls ─────────────────────────────────────────────────────
     def control(self, playing=None, speed=None, scenario=None, reset=False):
         with self._lock:
-            current = self._scenario
-        want = scenario if scenario in self.SCENARIOS else current
-        rebuild = reset or (want != current)
-        new_engine = self._build_engine(want) if rebuild else None  # slow — outside lock
+            want = scenario if scenario in self.SCENARIOS else self._scenario
+            rebuild = reset or (want != self._scenario)
 
-        with self._lock:
             if playing is not None:
                 self._playing = bool(playing)
             if speed is not None:
                 self._speed = max(0.1, min(16.0, float(speed)))
+
+            # Reset / scenario switch: swap in a CLONE of the pre-warmed template.
+            # Cloning is sub-millisecond, so this whole call returns instantly and
+            # the new scenario is live on the very next tick.
             if rebuild:
+                self._engine = self._clone_engine(self._warm[want])
                 self._scenario = want
-                self._engine = new_engine
                 self._cursor = self.WARMUP % len(self._rows[want])
                 self._latest = None
-                self._generation += 1
+                self._generation += 1   # discard any tick still in flight
+
             return self._state_locked()
 
     def get(self):

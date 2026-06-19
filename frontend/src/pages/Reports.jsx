@@ -4,6 +4,7 @@ import { getReportsAlerts, getNotifications } from '../api'
 import Topbar from '../components/Topbar'
 import { severityStyle, statusStyle } from '../tokens'
 import { useResponsive } from '../hooks/useResponsive'
+import { getDiagnosis, getResolutionMetrics } from '../utils/diagnosisEngine'
 
 // ── Shared helpers ───────────────────────────────────────────────────
 
@@ -121,6 +122,14 @@ function buildFilterSummary(fromDate, toDate, sevFilter, statusFilter, scenarioF
   return parts.join('   ·   ')
 }
 
+function maybeNewPage(doc, y, needed = 18) {
+  if (y + needed > 272) {
+    doc.addPage()
+    return 20
+  }
+  return y
+}
+
 async function exportEpisodePdf(alert, username) {
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
@@ -204,14 +213,106 @@ async function exportEpisodePdf(alert, username) {
   doc.setFont('helvetica', 'normal')
   const raLines = doc.splitTextToSize(alert.recommended_action || '—', W - mg * 2)
   doc.text(raLines, mg, y)
+  y += raLines.length * 5 + 4
 
-  // Footer
+  // ── Resolution Metrics ────────────────────────────────────────────
+  y = maybeNewPage(doc, y, 30)
+  doc.setDrawColor(210, 200, 185)
+  doc.setLineWidth(0.35)
+  doc.line(mg, y, W - mg, y)
+  y += 8
+
+  doc.setFontSize(9.5)
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(35, 35, 35)
+  doc.text('Resolution Metrics', mg, y)
+  y += 6
+
+  const metrics = getResolutionMetrics(alert)
+  ;[
+    ['Time to Acknowledge', metrics.timeToAck],
+    ['Time to Resolve',     metrics.timeToResolve],
+    ['Total Duration',      metrics.totalDuration],
+  ].forEach(([label, value]) => {
+    y = maybeNewPage(doc, y)
+    doc.setFontSize(8.5)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(130, 120, 110)
+    doc.text(label, mg, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(35, 35, 35)
+    doc.text(String(value), mg + 46, y)
+    y += 6
+  })
+
+  // ── Root Cause Analysis ───────────────────────────────────────────
+  const rules = getDiagnosis(alert.predicted_failure)
+  if (rules.length > 0) {
+    y += 2
+    y = maybeNewPage(doc, y, 28)
+    doc.setDrawColor(210, 200, 185)
+    doc.line(mg, y, W - mg, y)
+    y += 8
+
+    doc.setFontSize(9.5)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(35, 35, 35)
+    doc.text('Root Cause Analysis', mg, y)
+    y += 4
+
+    doc.setFontSize(7.5)
+    doc.setFont('helvetica', 'italic')
+    doc.setTextColor(130, 120, 110)
+    doc.text('Pattern-matched diagnosis based on fault signature', mg, y)
+    y += 8
+
+    rules.forEach(rule => {
+      y = maybeNewPage(doc, y, 36)
+
+      doc.setFontSize(8.5)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(203, 91, 60)
+      doc.text(rule.title, mg, y)
+      y += 5
+
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(80, 72, 60)
+      doc.setFontSize(8)
+      const descLines = doc.splitTextToSize(rule.description, W - mg * 2)
+      descLines.forEach(line => {
+        y = maybeNewPage(doc, y)
+        doc.text(line, mg, y)
+        y += 4.5
+      })
+      y += 2
+
+      doc.setFontSize(7.5)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(130, 120, 110)
+      doc.text('Contributing Factors:', mg, y)
+      y += 4.5
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(80, 72, 60)
+      rule.factors.forEach(factor => {
+        y = maybeNewPage(doc, y)
+        doc.text('•  ' + factor, mg + 3, y)
+        y += 4.5
+      })
+      y += 5
+    })
+  }
+
+  // ── Footer (last page) ────────────────────────────────────────────
+  const lastPage = doc.internal.getNumberOfPages()
+  doc.setPage(lastPage)
   doc.setDrawColor(195, 188, 175)
   doc.line(mg, 284, W - mg, 284)
   doc.setFontSize(7)
   doc.setTextColor(140, 130, 115)
   doc.text('Auguard PdM System  ·  Confidential Maintenance Record', mg, 289)
-  doc.text('1 / 1', W - mg, 289, { align: 'right' })
+  doc.text(`1 / ${lastPage}`, W - mg, 289, { align: 'right' })
 
   const safeName = (alert.predicted_failure || 'alert').replace(/[^a-z0-9]/gi, '_').slice(0, 30)
   doc.save(`auguard_episode_${safeName}.pdf`)
@@ -324,12 +425,16 @@ async function exportListPdf(displayed, fromDate, toDate, sevFilter, statusFilte
 // ── Detail panel (inline accordion) ─────────────────────────────────
 
 function DetailPanel({ alert, scenario, username, onClose }) {
+  const rules   = getDiagnosis(alert.predicted_failure)
+  const metrics = getResolutionMetrics(alert)
+
   return (
     <div style={{
       background: 'rgba(22,27,34,.75)',
       borderLeft: '3px solid rgba(203,91,60,.5)',
       padding: '22px 26px',
     }}>
+      {/* ── Top row: existing columns ─────────────────────────────── */}
       <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
         {/* Left col: meta fields */}
@@ -418,6 +523,72 @@ function DetailPanel({ alert, scenario, username, onClose }) {
           </button>
         </div>
       </div>
+
+      {/* ── Resolution Metrics ─────────────────────────────────────── */}
+      <div style={{
+        marginTop: 20, paddingTop: 16,
+        borderTop: '1px solid rgba(57,62,70,.5)',
+      }}>
+        <div style={{ fontSize: 10, fontWeight: 600, color: '#6f6a60', letterSpacing: '.06em', marginBottom: 10 }}>
+          RESOLUTION METRICS
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '7px 32px' }}>
+          {[
+            ['Time to Acknowledge', metrics.timeToAck],
+            ['Time to Resolve',     metrics.timeToResolve],
+            ['Total Duration',      metrics.totalDuration],
+          ].map(([label, value]) => (
+            <div key={label} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+              <span style={{ fontSize: 11, color: '#6f6a60', fontWeight: 500, minWidth: 148, flexShrink: 0 }}>
+                {label}
+              </span>
+              <span style={{ fontSize: 11, color: '#cabfa6' }}>{value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Root Cause Analysis (only when rules match) ────────────── */}
+      {rules.length > 0 && (
+        <div style={{
+          marginTop: 16, paddingTop: 16,
+          borderTop: '1px solid rgba(57,62,70,.5)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 14 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#6f6a60', letterSpacing: '.06em' }}>
+              ROOT CAUSE ANALYSIS
+            </span>
+            <span style={{ fontSize: 10, color: '#4a5260' }}>
+              Pattern-matched diagnosis based on fault signature
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {rules.map((rule, i) => (
+              <div key={i} style={{
+                background: 'rgba(203,91,60,.07)',
+                border: '1px solid rgba(203,91,60,.22)',
+                borderLeft: '3px solid rgba(203,91,60,.45)',
+                borderRadius: 9, padding: '13px 16px',
+              }}>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: '#E0987F', marginBottom: 6 }}>
+                  {rule.title}
+                </div>
+                <div style={{ fontSize: 12, color: '#a59c8c', lineHeight: 1.65, marginBottom: 9 }}>
+                  {rule.description}
+                </div>
+                <div style={{ fontSize: 10, fontWeight: 600, color: '#6f6a60', letterSpacing: '.04em', marginBottom: 6 }}>
+                  CONTRIBUTING FACTORS
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {rule.factors.map((f, j) => (
+                    <li key={j} style={{ fontSize: 11.5, color: '#948979', lineHeight: 1.6 }}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

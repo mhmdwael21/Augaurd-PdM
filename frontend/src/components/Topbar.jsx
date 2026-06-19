@@ -31,6 +31,7 @@ export default function Topbar({ unreadCount = 0 }) {
 
   const nav = [
     { label: 'Dashboard',     path: '/dashboard' },
+    { label: 'Prototype',     path: '/hardware' },
     { label: 'Alerts',        path: '/alerts' },
     { label: 'Notifications', path: '/notifications' },
     { label: 'Reports',       path: '/reports' },

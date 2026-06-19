@@ -85,7 +85,8 @@ export default function Dashboard() {
   const liveTimer = useRef(null)                       // safety net to drop stale optimistic state
   const seenAlerts = useRef(null)
 
-  const { data: snap } = usePoll(getDashboard, 1000)
+  const [pollMs, setPollMs] = useState(1000)
+  const { data: snap } = usePoll(getDashboard, pollMs)
   const { data: alerts } = usePoll(getAlerts, 5000)
   const { data: notifs } = usePoll(getNotifications, 10000)
 
@@ -105,6 +106,9 @@ export default function Dashboard() {
   }, [alerts])
 
   async function ctrl(body) {
+    if (body.speed != null) {
+      setPollMs(Math.max(250, Math.round(1000 / body.speed)))
+    }
     try {
       setBusy(true)
       const res = await controlReplay(body)
@@ -157,6 +161,16 @@ export default function Dashboard() {
     UNKNOWN: { label: 'NOVEL',   col: '#E0987F', bg: 'rgba(190,80,52,.16)',  bd: 'rgba(190,80,52,.45)' },
   }
   const cv = verdictMap[clf?.verdict] || verdictMap.NORMAL
+
+  // The classifier outputs P(matches a KNOWN leak signature). Showing that raw
+  // number next to "NOVEL" reads as "the system is unsure" to non-technical
+  // viewers — when a low match is exactly WHY it's flagged novel. So for a NOVEL
+  // verdict we surface the complement as a NOVELTY score (high = strongly novel);
+  // KNOWN/NORMAL keep showing the signature MATCH. Both then reinforce the verdict.
+  const clfProb = clf?.confidence
+  const clfMetric = clf?.verdict === 'UNKNOWN'
+    ? { label: 'NOVELTY', pct: clfProb != null ? Math.round((1 - clfProb) * 100) : null }
+    : { label: 'MATCH',   pct: clfProb != null ? Math.round(clfProb * 100) : null }
 
   // RUL
   const rul = snap?.rul
@@ -284,9 +298,9 @@ export default function Dashboard() {
                   <span style={{ fontWeight: 800, fontSize: 22, color: cv.col }}>{cv.label}</span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: 10, letterSpacing: '.12em', color: '#948979' }}>CONFIDENCE</span>
+                  <span style={{ fontSize: 10, letterSpacing: '.12em', color: '#948979' }}>{clfMetric.label}</span>
                   <div style={{ fontWeight: 700, fontSize: 20, color: cv.col }}>
-                    {clf?.confidence != null ? `${Math.round(clf.confidence * 100)}%` : '—'}
+                    {clfMetric.pct != null ? `${clfMetric.pct}%` : '—'}
                   </div>
                 </div>
               </div>

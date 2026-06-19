@@ -19,6 +19,7 @@ AI/preprocessed_data/
 
 # ── Preprocessed / intermediate artefacts ───────────────────────────────────
 AI-PdM.zip
+scripts/.tier_series.json
 
 # ── Frontend ─────────────────────────────────────────────────────────────────
 frontend/node_modules/

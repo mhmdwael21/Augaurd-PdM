@@ -93,6 +93,16 @@ export const getReportsAlerts = (params = {}) => {
 }
 export const getReportAlert = (id) => api(`/reports/alerts/${id}`)
 
+// Hardware (ESP32 prototype). GET reads are open; mutations need auth.
+export const getHardware       = ()      => api('/hardware')
+export const getHardwarePipeline = ()    => api('/hardware/pipeline')   // Track A — pipeline check, NOT a detection
+export const injectComponent   = (component, state) =>
+  api('/hardware/inject', { method: 'POST', body: JSON.stringify({ component, state }) })
+export const setTriggerConfig  = (body)  =>
+  api('/hardware/trigger/config', { method: 'POST', body: JSON.stringify(body) })
+export const clearHardwareBanner = ()    =>
+  api('/hardware/trigger/banner/clear', { method: 'POST' })
+
 // Notifications
 export const getNotifications = () =>
   DEMO ? mock.mockGetNotifications()

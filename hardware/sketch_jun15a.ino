@@ -20,7 +20,7 @@ WiFi + FastAPI Sender
 
 const char* ssid = "Elhefnawy_office";
 const char* password = "Elhefnawy#55667788#";
-const char* serverUrl = "http://192.168.1.114:8000/hardware/ingest";
+const char* serverUrl = "http://192.168.1.113:8000/hardware/ingest";
 
 // Static device key — must match HARDWARE_API_KEY in the backend .env
 const char* deviceKey = "auguard-esp32-dev-key";

@@ -55,15 +55,9 @@ def ensure_system_user(db) -> uuid.UUID:
 
 
 # ── snapshot -> alert mapping ────────────────────────────────────────
-def _severity(snap) -> AlertSeverity:
-    score = snap["anomaly"]["score"]
-    rul = snap["rul"]
-    verdict = snap["classifier"]["verdict"]
-    if (rul["available"] and rul["zone"] == "CRITICAL") or score >= 0.85 or verdict == "UNKNOWN":
-        return AlertSeverity.CRITICAL
-    if score >= 0.75 or (rul["available"] and rul["zone"] == "DEGRADATION"):
-        return AlertSeverity.HIGH
-    return AlertSeverity.MEDIUM
+# Severity comes straight from the engine's IF-score band (detection.alert_severity);
+# LOW/MEDIUM are sustained-drift warnings, HIGH/CRITICAL are confirmed anomalies.
+_DRIFT_SEVERITIES = {AlertSeverity.LOW, AlertSeverity.MEDIUM}
 
 
 def _predicted_failure(snap) -> str:
@@ -78,19 +72,36 @@ def _predicted_failure(snap) -> str:
 
 
 def build_alert_payload(snap) -> AlertCreate:
+    severity = AlertSeverity(snap["detection"]["alert_severity"])
+    score = round(float(snap["anomaly"]["score"]), 4)
+    if severity in _DRIFT_SEVERITIES:
+        # Sustained drift — below the anomaly threshold, so the LSTM has not run
+        # and there is no localized fault to report. Generic, monitor-only text.
+        return AlertCreate(
+            severity=severity,
+            predicted_failure="Sustained drift detected",
+            recommended_action=(
+                "Monitor the unit — the anomaly score has stayed elevated for "
+                "several minutes without confirming a failure."
+            ),
+            anomaly_score=score,
+        )
     action = snap["localization"]["action"] or "Investigate the flagged sensors and recent trend."
     return AlertCreate(
-        severity=_severity(snap),
+        severity=severity,
         predicted_failure=_predicted_failure(snap),
         recommended_action=action,
-        anomaly_score=round(float(snap["anomaly"]["score"]), 4),
+        anomaly_score=score,
     )
 
 
 def handle_snapshot(snap):
-    """If this snapshot latched a new anomaly episode, persist alert + notification.
+    """If this snapshot fired a band escalation, persist alert + notification.
 
-    Returns the created Alert (or None when there is no event).
+    The engine sets ``alert_event`` (with ``alert_severity``) when the IF score
+    climbs into a new, higher band whose persistence gate is met — LOW/MEDIUM
+    for sustained drift, HIGH/CRITICAL for confirmed anomalies. NORMAL and brief
+    drifts never fire. Returns the created Alert (or None when there is no event).
     """
     if not snap or not snap.get("detection", {}).get("alert_event"):
         return None
@@ -103,7 +114,7 @@ def handle_snapshot(snap):
         note = NotificationCreate(
             subject=f"{payload.severity.value.upper()}: {payload.predicted_failure}",
             body=(
-                f"Auto-detected anomaly on the APU. {payload.recommended_action} "
+                f"{payload.predicted_failure}. {payload.recommended_action} "
                 f"(anomaly score {payload.anomaly_score}, status {snap['status']})."
             ),
             recipient_type=RecipientType.ALL,
@@ -111,7 +122,14 @@ def handle_snapshot(snap):
             alert_id=alert.id,
         )
         create_notification(db, note, sys_id)
-        logger.info("AI alert %s created (%s)", alert.id, payload.predicted_failure)
+        rul = snap["rul"]
+        logger.info(
+            "AI alert %s created [%s] %s (score=%.3f, rul=%s, verdict=%s)",
+            alert.id, payload.severity.value, payload.predicted_failure,
+            snap["anomaly"]["score"],
+            f"{rul['hours']:.1f}h" if rul["available"] and rul["hours"] is not None else "n/a",
+            snap["classifier"]["verdict"],
+        )
         return alert
     finally:
         db.close()

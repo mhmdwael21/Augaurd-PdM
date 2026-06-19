@@ -37,6 +37,27 @@ RECOVER_N = 5         # consecutive sub-threshold windows to recover to NORMAL
 FAILURE_SCORE = 0.90  # score at/above this while anomalous -> FAILURE
 FAILURE_RUL_H = 12    # RUL below this while anomalous -> FAILURE
 
+# ── IF-score-driven alert severity (bands + persistence) ──────────────
+# Severity is a pure function of the normalized IF score. A score band only
+# turns into an alert once it has *persisted* (no alert on a brief spike):
+#   LOW/MEDIUM  -> score held in the drift band for DRIFT_SUSTAIN_N readings
+#   HIGH/CRIT   -> the existing LATCH_N consecutive-window anomaly latch
+DRIFT_FLOOR = 0.51      # score at/above this counts as "elevated" (drift band floor)
+DRIFT_SUSTAIN_N = 30    # consecutive elevated readings (~5 min @ 10 s) -> low/medium fires
+REARM_LEVEL = 0.45      # score must fall below this to count toward re-arming
+REARM_N = 5             # consecutive readings below REARM_LEVEL -> new episode armed
+# Lower edge of each severity band (checked high -> low).
+BAND_EDGES = [(4, 0.76), (3, 0.65), (2, 0.56), (1, 0.51)]
+BAND_SEVERITY = {1: "low", 2: "medium", 3: "high", 4: "critical"}
+
+
+def score_band(score):
+    """Map a normalized IF score to a severity band (0 = none ... 4 = critical)."""
+    for band, edge in BAND_EDGES:
+        if score >= edge:
+            return band
+    return 0
+
 HEADLINE = [
     ("TP2", "TP2 · Compressor", "bar"),
     ("H1", "H1 · Pressure", "bar"),
@@ -72,6 +93,9 @@ class InferenceEngine:
         self.below = 0           # consecutive sub-threshold windows
         self.state = "NORMAL"    # latched state machine
         self.episode_active = False
+        self.max_band = 0        # highest severity band already alerted this episode
+        self.drift_run = 0       # consecutive elevated readings (>= DRIFT_FLOOR)
+        self.calm = 0            # consecutive readings below REARM_LEVEL
         m = self.reg.if_meta
         self.if_lo = float(m["train_score_min"])
         self.if_thr = float(self.reg.if_threshold)
@@ -106,7 +130,8 @@ class InferenceEngine:
             self.consec = 0
 
         rul_block = self._rul(flagged)
-        state, alert_event = self._advance_state(score, rul_block)
+        state = self._advance_state(score, rul_block)
+        alert_event, alert_severity = self._advance_alert(score)
 
         return {
             "timestamp": ts,
@@ -123,18 +148,17 @@ class InferenceEngine:
                 "consecutive_anomalous_windows": self.consec,
                 "alert_recommended": self.consec >= LATCH_N,
                 "alert_event": alert_event,
+                "alert_severity": alert_severity,
                 "episode_active": self.episode_active,
             },
             "meta": {"model_version": MODEL_VERSION, "dataset": "MetroPT-3"},
         }
 
     def _advance_state(self, score, rul_block):
-        """Latching NORMAL/DRIFT/ANOMALY/FAILURE. Returns (state, alert_event).
+        """Latching NORMAL/DRIFT/ANOMALY/FAILURE for the dashboard badge.
 
-        alert_event fires once, on the transition that latches a new anomaly
-        episode (so one alert per episode; re-arms after recovery to NORMAL).
+        Display only — alert firing is handled separately by ``_advance_alert``.
         """
-        alert_event = False
         failure = score >= FAILURE_SCORE or (
             rul_block["available"] and rul_block["hours"] is not None
             and rul_block["hours"] < FAILURE_RUL_H
@@ -143,7 +167,6 @@ class InferenceEngine:
             if self.consec >= LATCH_N:
                 self.state = "FAILURE" if failure else "ANOMALY"
                 self.episode_active = True
-                alert_event = True
             else:
                 self.state = "DRIFT" if score >= 0.5 else "NORMAL"
         else:  # ANOMALY or FAILURE
@@ -152,7 +175,39 @@ class InferenceEngine:
                 self.episode_active = False
             else:
                 self.state = "FAILURE" if failure else "ANOMALY"
-        return self.state, alert_event
+        return self.state
+
+    def _advance_alert(self, score):
+        """Band-based alert escalation (IF score only). Returns (fire, severity).
+
+        Severity is the score's band; an alert fires only when the score climbs
+        into a *higher* band than already alerted this episode (escalation trail,
+        never downgrading, one alert per band), and only once that band's
+        persistence gate is met:
+          * LOW/MEDIUM  -> drift sustained for DRIFT_SUSTAIN_N readings (or the
+            episode already has a lower-band alert, so persistence is proven);
+          * HIGH/CRIT   -> the LATCH_N consecutive-window anomaly latch.
+        The episode re-arms after the score sits below REARM_LEVEL for REARM_N
+        readings (hysteresis), letting a fresh trail start.
+        """
+        self.drift_run = self.drift_run + 1 if score >= DRIFT_FLOOR else 0
+        self.calm = self.calm + 1 if score < REARM_LEVEL else 0
+        if self.calm >= REARM_N:
+            self.max_band = 0  # re-armed: ready for a new escalation trail
+
+        band = score_band(score)
+        if band <= self.max_band:
+            return False, None
+
+        if band >= 3:  # HIGH / CRITICAL — anomaly latch
+            gate = self.consec >= LATCH_N
+        else:          # LOW / MEDIUM — sustained drift (or persistence already proven)
+            gate = self.drift_run >= DRIFT_SUSTAIN_N or self.max_band >= 1
+        if not gate:
+            return False, None
+
+        self.max_band = band
+        return True, BAND_SEVERITY[band]
 
     # ── branches ──────────────────────────────────────────────────────
     def _classifier(self, flagged):

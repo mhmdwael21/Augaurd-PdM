@@ -413,7 +413,17 @@ export default function Dashboard() {
 
       {toast && (
         <Toast
-          title={toast.severity === 'critical' ? 'Critical anomaly detected' : 'Anomaly detected'}
+          title={
+            toast.severity === 'critical' ? 'Critical anomaly detected'
+              : toast.severity === 'high' ? 'Anomaly detected'
+              : 'Drift detected'
+          }
+          titleColor={
+            toast.severity === 'critical' ? '#C0392B'   // dark red
+              : toast.severity === 'high' ? '#E8675A'    // light red
+              : toast.severity === 'medium' ? '#E8923C'  // orange
+              : '#E8C24A'                                // low — yellow
+          }
           sub={toast.predicted_failure}
           time={fmtDate(toast.timestamp)}
           onDismiss={() => setToast(null)}

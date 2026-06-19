@@ -1,4 +1,4 @@
-export default function Toast({ title, time, sub, onDismiss }) {
+export default function Toast({ title, time, sub, onDismiss, titleColor = '#E0987F' }) {
   return (
     <div style={{
       position: 'fixed', top: 22, right: 26, zIndex: 50,
@@ -20,11 +20,11 @@ export default function Toast({ title, time, sub, onDismiss }) {
             fontVariationSettings: "'FILL' 0,'wght' 300",
             fontStyle: 'normal', lineHeight: 1,
             display: 'inline-block', verticalAlign: 'middle',
-            fontSize: 17, color: '#E0987F',
+            fontSize: 17, color: titleColor,
           }}>warning</span>
         </span>
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-          <span style={{ fontWeight: 700, fontSize: 14, color: '#E0987F' }}>{title}</span>
+          <span style={{ fontWeight: 700, fontSize: 14, color: titleColor }}>{title}</span>
           <span style={{ fontSize: 10, color: '#948979', letterSpacing: '.06em' }}>{time}</span>
         </div>
         {onDismiss && (

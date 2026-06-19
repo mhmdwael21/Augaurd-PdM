@@ -1,0 +1,481 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { background: transparent; font-family: 'Satoshi', system-ui, sans-serif; }
+
+  .wrap {
+    background: #1B2027;
+    border: 1px solid #2f3742;
+    border-radius: 16px;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 20px;
+    border-bottom: 1px solid #2f3742;
+    background: rgba(27,32,39,.96);
+  }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .topbar-title { color: #DFD0B8; font-size: 11.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+  .divider { width: 1px; height: 16px; background: #2f3742; }
+  .sub { color: #948979; font-size: 10px; font-weight: 500; }
+  .live { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; color: #C6D196; background: rgba(123,138,67,.13); border: 1px solid rgba(123,138,67,.3); border-radius: 6px; padding: 3px 9px; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #AEBC74; animation: blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+  svg { display: block; width: 100%; }
+
+  .ctrl-bar {
+    border-top: 1px solid #2f3742;
+    background: #1e242d;
+    padding: 12px 20px;
+  }
+  .ctrl-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .ctrl-label { color: #948979; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; flex-shrink: 0; }
+  .btn {
+    font-size: 10px; font-weight: 600; font-family: inherit;
+    padding: 5px 10px; border-radius: 7px; cursor: pointer;
+    border: 1px solid #333b45; background: #222831; color: #a59c8c;
+    transition: all .18s; outline: none;
+  }
+  .btn:hover { border-color: #948979; color: #DFD0B8; }
+  .btn.warn { background: rgba(217,169,74,.13); border-color: rgba(217,169,74,.45); color: #E4C281; }
+  .btn.crit { background: rgba(203,91,60,.14); border-color: rgba(203,91,60,.55); color: #E0987F; }
+  .btn.reset { color: #C6D196; border-color: rgba(123,138,67,.38); }
+  .btn.reset:hover { background: rgba(123,138,67,.1); }
+
+  .status-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 9px; }
+  .chip { font-size: 10px; font-weight: 700; letter-spacing: .04em; border-radius: 6px; padding: 3px 9px; transition: all .3s; }
+  .chip-ok   { background: rgba(123,138,67,.13); border: 1px solid rgba(123,138,67,.3); color: #C6D196; }
+  .chip-warn { background: rgba(217,169,74,.13); border: 1px solid rgba(217,169,74,.38); color: #E4C281; }
+  .chip-crit { background: rgba(203,91,60,.15); border: 1px solid rgba(203,91,60,.44); color: #E0987F; }
+</style>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-title">APU Compressor</span>
+      <span class="divider"></span>
+      <span class="sub">Hardware Schematic · Click any component</span>
+    </div>
+    <span class="live"><span class="live-dot"></span>LIVE</span>
+  </div>
+
+  <svg id="schematic" viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <!-- Normal glow -->
+      <filter id="fn" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <!-- Warning glow -->
+      <filter id="fw" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <!-- Critical glow -->
+      <filter id="fc" x="-100%" y="-100%" width="300%" height="300%">
+        <feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <!-- Pipe flow animation -->
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+        <path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- ════════════════════════════════════════════
+         BOARD PLATE
+    ════════════════════════════════════════════ -->
+    <rect x="18" y="110" width="864" height="120" rx="14" fill="#222831" stroke="#2f3742" stroke-width="1"/>
+    <!-- board screw corners -->
+    <circle cx="36" cy="128" r="5" fill="#1e242d" stroke="#333b45" stroke-width="1"/>
+    <circle cx="864" cy="128" r="5" fill="#1e242d" stroke="#333b45" stroke-width="1"/>
+    <circle cx="36" cy="212" r="5" fill="#1e242d" stroke="#333b45" stroke-width="1"/>
+    <circle cx="864" cy="212" r="5" fill="#1e242d" stroke="#333b45" stroke-width="1"/>
+
+    <!-- ════════════════════════════════════════════
+         PIPE — horizontal main run (right → left, 9 segments)
+         Right side: pump at x≈820, Left side: outlet at x≈50
+    ════════════════════════════════════════════ -->
+
+    <!-- seg 1: pump outlet → valve1  -->
+    <line id="p1" x1="786" y1="170" x2="748" y2="170" stroke="#2f3742" stroke-width="7" stroke-linecap="round"/>
+    <!-- seg 2: valve1 → sensor1 -->
+    <line id="p2" x1="716" y1="170" x2="676" y2="170" stroke="#2f3742" stroke-width="7" stroke-linecap="round"/>
+    <!-- seg 3: sensor1 → filter -->
+    <line id="p3" x1="644" y1="170" x2="594" y2="170" stroke="#2f3742" stroke-width="7" stroke-linecap="round"/>
+    <!-- seg 4: filter → sensor2 -->
+    <line id="p4" x1="534" y1="170" x2="494" y2="170" stroke="#2f3742" stroke-width="7" stroke-linecap="round"/>
+    <!-- seg 5: sensor2 → valve2 -->
+    <line id="p5" x1="462" y1="170" x2="422" y2="170" stroke="#2f3742" stroke-width="7" stroke-linecap="round"/>
+    <!-- seg 6: valve2 → tank -->
+    <line id="p6" x1="390" y1="170" x2="300" y2="170" stroke="#2f3742" stroke-width="7" stroke-linecap="round"/>
+    <!-- seg 7: tank top → sensor3 (vertical riser) -->
+    <line id="p7" x1="216" y1="110" x2="216" y2="62" stroke="#2f3742" stroke-width="5" stroke-linecap="round"/>
+    <!-- seg 8: tank left → valve3 -->
+    <line id="p8" x1="136" y1="170" x2="108" y2="170" stroke="#2f3742" stroke-width="7" stroke-linecap="round"/>
+    <!-- seg 9: valve3 → outlet -->
+    <line id="p9" x1="76" y1="170" x2="46" y2="170" stroke="#2f3742" stroke-width="7" stroke-linecap="round" marker-end="url(#arr)"/>
+
+    <!-- Flow direction arrow (subtle) on seg 1 -->
+    <text x="860" y="162" text-anchor="end" font-size="9" fill="#4a5360" font-family="Satoshi,system-ui">AIR IN</text>
+    <text x="30"  y="162" text-anchor="start" font-size="9" fill="#4a5360" font-family="Satoshi,system-ui">OUT</text>
+
+    <!-- ════════════════════════════════════════════
+         1 · AIR PUMP  (rightmost)
+    ════════════════════════════════════════════ -->
+    <g id="node-pump" style="cursor:pointer" onclick="cycle('pump')">
+      <!-- housing -->
+      <rect id="body-pump" x="790" y="128" width="80" height="84" rx="11" fill="#2a3140" stroke="#393E46" stroke-width="1.5"/>
+      <!-- motor circle -->
+      <circle cx="830" cy="165" r="22" fill="#1e242d" stroke="#393E46" stroke-width="1"/>
+      <!-- fan blades -->
+      <g id="fan-pump" style="transform-origin:830px 165px">
+        <line x1="830" y1="143" x2="830" y2="155" stroke="#AEBC74" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="830" y1="175" x2="830" y2="187" stroke="#AEBC74" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="808" y1="165" x2="820" y2="165" stroke="#AEBC74" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="840" y1="165" x2="852" y2="165" stroke="#AEBC74" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="814" y1="149" x2="822" y2="157" stroke="#AEBC74" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="838" y1="173" x2="846" y2="181" stroke="#AEBC74" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="846" y1="149" x2="838" y2="157" stroke="#AEBC74" stroke-width="1.2" stroke-linecap="round"/>
+        <line x1="822" y1="173" x2="814" y2="181" stroke="#AEBC74" stroke-width="1.2" stroke-linecap="round"/>
+      </g>
+      <circle id="dot-pump" cx="830" cy="165" r="5" fill="#AEBC74" filter="url(#fn)"/>
+      <!-- label above -->
+      <text id="lbl-pump" x="830" y="97" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DFD0B8" font-family="Satoshi,system-ui">AIR PUMP</text>
+      <!-- status below -->
+      <text id="stat-pump" x="830" y="228" text-anchor="middle" font-size="8.5" font-weight="600" fill="#C6D196" font-family="Satoshi,system-ui" letter-spacing=".05em">NORMAL</text>
+    </g>
+
+    <!-- ════════════════════════════════════════════
+         2 · VALVE 1
+    ════════════════════════════════════════════ -->
+    <g id="node-v1" style="cursor:pointer" onclick="cycle('v1')">
+      <polygon id="body-v1" points="732,152 748,170 732,188 716,170" fill="#2a3140" stroke="#AEBC74" stroke-width="1.5"/>
+      <!-- cross inside valve -->
+      <line x1="724" y1="170" x2="740" y2="170" stroke="#AEBC74" stroke-width="1" opacity=".5"/>
+      <line x1="732" y1="162" x2="732" y2="178" stroke="#AEBC74" stroke-width="1" opacity=".5"/>
+      <text id="lbl-v1" x="732" y="97" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DFD0B8" font-family="Satoshi,system-ui">VALVE 1</text>
+      <text id="stat-v1" x="732" y="228" text-anchor="middle" font-size="8.5" font-weight="600" fill="#C6D196" font-family="Satoshi,system-ui" letter-spacing=".05em">NORMAL</text>
+    </g>
+
+    <!-- ════════════════════════════════════════════
+         3 · PRESSURE SENSOR 1
+    ════════════════════════════════════════════ -->
+    <g id="node-s1" style="cursor:pointer" onclick="cycle('s1')">
+      <circle id="body-s1" cx="660" cy="170" r="28" fill="#2a3140" stroke="#AEBC74" stroke-width="1.5"/>
+      <!-- gauge face -->
+      <circle cx="660" cy="170" r="18" fill="#1e242d" stroke="#333b45" stroke-width="1"/>
+      <!-- gauge tick marks -->
+      <line x1="660" y1="153" x2="660" y2="157" stroke="#4a5360" stroke-width="1"/>
+      <line x1="673" y1="157" x2="670" y2="160" stroke="#4a5360" stroke-width="1"/>
+      <line x1="647" y1="157" x2="650" y2="160" stroke="#4a5360" stroke-width="1"/>
+      <line x1="677" y1="170" x2="673" y2="170" stroke="#4a5360" stroke-width="1"/>
+      <line x1="647" y1="170" x2="643" y2="170" stroke="#4a5360" stroke-width="1"/>
+      <!-- needle -->
+      <line id="ndl-s1" x1="660" y1="170" x2="660" y2="156" stroke="#AEBC74" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="660" cy="170" r="3" fill="#AEBC74"/>
+      <text id="lbl-s1" x="660" y="97" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DFD0B8" font-family="Satoshi,system-ui">P-SENSOR 1</text>
+      <text id="val-s1" x="660" y="210" text-anchor="middle" font-size="8" fill="#948979" font-family="Satoshi,system-ui">-- kPa</text>
+      <text id="stat-s1" x="660" y="228" text-anchor="middle" font-size="8.5" font-weight="600" fill="#C6D196" font-family="Satoshi,system-ui" letter-spacing=".05em">NORMAL</text>
+    </g>
+
+    <!-- ════════════════════════════════════════════
+         4 · AIR FILTER
+    ════════════════════════════════════════════ -->
+    <g id="node-filter" style="cursor:pointer" onclick="cycle('filter')">
+      <rect id="body-filter" x="534" y="132" width="60" height="76" rx="10" fill="#2a3140" stroke="#AEBC74" stroke-width="1.5"/>
+      <!-- filter media lines -->
+      <line x1="544" y1="148" x2="584" y2="148" stroke="#393E46" stroke-width="2" stroke-linecap="round"/>
+      <line x1="544" y1="157" x2="584" y2="157" stroke="#393E46" stroke-width="2" stroke-linecap="round"/>
+      <line x1="544" y1="166" x2="584" y2="166" stroke="#393E46" stroke-width="2" stroke-linecap="round"/>
+      <line x1="544" y1="175" x2="584" y2="175" stroke="#393E46" stroke-width="2" stroke-linecap="round"/>
+      <line x1="544" y1="184" x2="584" y2="184" stroke="#393E46" stroke-width="2" stroke-linecap="round"/>
+      <text id="lbl-filter" x="564" y="97" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DFD0B8" font-family="Satoshi,system-ui">AIR FILTER</text>
+      <text id="stat-filter" x="564" y="228" text-anchor="middle" font-size="8.5" font-weight="600" fill="#C6D196" font-family="Satoshi,system-ui" letter-spacing=".05em">NORMAL</text>
+    </g>
+
+    <!-- ════════════════════════════════════════════
+         5 · VALVE 2
+    ════════════════════════════════════════════ -->
+    <g id="node-v2" style="cursor:pointer" onclick="cycle('v2')">
+      <polygon id="body-v2" points="478,152 494,170 478,188 462,170" fill="#2a3140" stroke="#AEBC74" stroke-width="1.5"/>
+      <line x1="470" y1="170" x2="486" y2="170" stroke="#AEBC74" stroke-width="1" opacity=".5"/>
+      <line x1="478" y1="162" x2="478" y2="178" stroke="#AEBC74" stroke-width="1" opacity=".5"/>
+      <text id="lbl-v2" x="478" y="97" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DFD0B8" font-family="Satoshi,system-ui">VALVE 2</text>
+      <text id="stat-v2" x="478" y="228" text-anchor="middle" font-size="8.5" font-weight="600" fill="#C6D196" font-family="Satoshi,system-ui" letter-spacing=".05em">NORMAL</text>
+    </g>
+
+    <!-- ════════════════════════════════════════════
+         6 · PRESSURE SENSOR 2
+    ════════════════════════════════════════════ -->
+    <g id="node-s2" style="cursor:pointer" onclick="cycle('s2')">
+      <circle id="body-s2" cx="478" cy="170" r="0"/> <!-- anchor, real body below at correct x -->
+    </g>
+    <g id="node-s2" style="cursor:pointer" onclick="cycle('s2')">
+      <circle id="body-s2b" cx="406" cy="170" r="28" fill="#2a3140" stroke="#AEBC74" stroke-width="1.5"/>
+      <circle cx="406" cy="170" r="18" fill="#1e242d" stroke="#333b45" stroke-width="1"/>
+      <line x1="406" y1="153" x2="406" y2="157" stroke="#4a5360" stroke-width="1"/>
+      <line x1="419" y1="157" x2="416" y2="160" stroke="#4a5360" stroke-width="1"/>
+      <line x1="393" y1="157" x2="396" y2="160" stroke="#4a5360" stroke-width="1"/>
+      <line x1="423" y1="170" x2="419" y2="170" stroke="#4a5360" stroke-width="1"/>
+      <line x1="393" y1="170" x2="389" y2="170" stroke="#4a5360" stroke-width="1"/>
+      <line id="ndl-s2" x1="406" y1="170" x2="406" y2="156" stroke="#AEBC74" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="406" cy="170" r="3" fill="#AEBC74"/>
+      <text id="lbl-s2" x="406" y="97" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DFD0B8" font-family="Satoshi,system-ui">P-SENSOR 2</text>
+      <text id="val-s2" x="406" y="210" text-anchor="middle" font-size="8" fill="#948979" font-family="Satoshi,system-ui">-- kPa</text>
+      <text id="stat-s2" x="406" y="228" text-anchor="middle" font-size="8.5" font-weight="600" fill="#C6D196" font-family="Satoshi,system-ui" letter-spacing=".05em">NORMAL</text>
+    </g>
+
+    <!-- ════════════════════════════════════════════
+         7 · TANK
+    ════════════════════════════════════════════ -->
+    <g id="node-tank" style="cursor:pointer" onclick="cycle('tank')">
+      <rect id="body-tank" x="136" y="120" width="160" height="100" rx="14" fill="#2a3140" stroke="#AEBC74" stroke-width="1.5"/>
+      <!-- liquid fill indicator -->
+      <rect id="tank-fill" x="138" y="172" width="156" height="46" rx="0 0 12px 12px" fill="rgba(123,138,67,.14)"/>
+      <!-- label strips -->
+      <rect x="152" y="136" width="128" height="8" rx="3" fill="#1e242d"/>
+      <rect x="152" y="150" width="96" height="8" rx="3" fill="#1e242d"/>
+      <!-- center dot/level gauge -->
+      <circle cx="216" cy="190" r="9" fill="#1e242d" stroke="#333b45" stroke-width="1"/>
+      <circle id="dot-tank" cx="216" cy="190" r="4" fill="#AEBC74" filter="url(#fn)"/>
+      <text id="lbl-tank" x="216" y="97" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DFD0B8" font-family="Satoshi,system-ui">TANK</text>
+      <text id="stat-tank" x="216" y="240" text-anchor="middle" font-size="8.5" font-weight="600" fill="#C6D196" font-family="Satoshi,system-ui" letter-spacing=".05em">NORMAL</text>
+    </g>
+
+    <!-- ════════════════════════════════════════════
+         8 · PRESSURE SENSOR 3  (mounted on top of tank, vertical riser)
+    ════════════════════════════════════════════ -->
+    <g id="node-s3" style="cursor:pointer" onclick="cycle('s3')">
+      <!-- riser mount stub -->
+      <rect x="210" y="98" width="12" height="14" rx="3" fill="#1e242d" stroke="#333b45" stroke-width="1"/>
+      <circle id="body-s3" cx="216" cy="45" r="26" fill="#2a3140" stroke="#AEBC74" stroke-width="1.5"/>
+      <circle cx="216" cy="45" r="17" fill="#1e242d" stroke="#333b45" stroke-width="1"/>
+      <line x1="216" y1="28" x2="216" y2="32" stroke="#4a5360" stroke-width="1"/>
+      <line x1="229" y1="32" x2="226" y2="35" stroke="#4a5360" stroke-width="1"/>
+      <line x1="203" y1="32" x2="206" y2="35" stroke="#4a5360" stroke-width="1"/>
+      <line id="ndl-s3" x1="216" y1="45" x2="216" y2="31" stroke="#AEBC74" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="216" cy="45" r="3" fill="#AEBC74"/>
+      <text id="lbl-s3" x="280" y="30" text-anchor="start" font-size="9.5" font-weight="700" fill="#DFD0B8" font-family="Satoshi,system-ui">P-SENSOR 3</text>
+      <line x1="244" y1="45" x2="276" y2="33" stroke="#333b45" stroke-width="1" stroke-dasharray="3 2"/>
+      <text id="val-s3" x="280" y="46" text-anchor="start" font-size="8" fill="#948979" font-family="Satoshi,system-ui">-- kPa</text>
+      <text id="stat-s3" x="280" y="60" text-anchor="start" font-size="8.5" font-weight="600" fill="#C6D196" font-family="Satoshi,system-ui" letter-spacing=".05em">NORMAL</text>
+    </g>
+
+    <!-- ════════════════════════════════════════════
+         9 · VALVE 3  (leftmost)
+    ════════════════════════════════════════════ -->
+    <g id="node-v3" style="cursor:pointer" onclick="cycle('v3')">
+      <polygon id="body-v3" points="92,152 108,170 92,188 76,170" fill="#2a3140" stroke="#AEBC74" stroke-width="1.5"/>
+      <line x1="84" y1="170" x2="100" y2="170" stroke="#AEBC74" stroke-width="1" opacity=".5"/>
+      <line x1="92" y1="162" x2="92" y2="178" stroke="#AEBC74" stroke-width="1" opacity=".5"/>
+      <text id="lbl-v3" x="92" y="97" text-anchor="middle" font-size="9.5" font-weight="700" fill="#DFD0B8" font-family="Satoshi,system-ui">VALVE 3</text>
+      <text id="stat-v3" x="92" y="228" text-anchor="middle" font-size="8.5" font-weight="600" fill="#C6D196" font-family="Satoshi,system-ui" letter-spacing=".05em">NORMAL</text>
+    </g>
+
+    <!-- ════════════════════════════════════════════
+         NUMBER LABELS on board
+    ════════════════════════════════════════════ -->
+    <text x="830" y="276" text-anchor="middle" font-size="8" fill="#4a5360" font-family="Satoshi,system-ui">① AIR PUMP</text>
+    <text x="732" y="276" text-anchor="middle" font-size="8" fill="#4a5360" font-family="Satoshi,system-ui">② VALVE</text>
+    <text x="660" y="276" text-anchor="middle" font-size="8" fill="#4a5360" font-family="Satoshi,system-ui">③ SENSOR</text>
+    <text x="564" y="276" text-anchor="middle" font-size="8" fill="#4a5360" font-family="Satoshi,system-ui">④ FILTER</text>
+    <text x="478" y="276" text-anchor="middle" font-size="8" fill="#4a5360" font-family="Satoshi,system-ui">⑤ VALVE</text>
+    <text x="406" y="276" text-anchor="middle" font-size="8" fill="#4a5360" font-family="Satoshi,system-ui">⑥ SENSOR</text>
+    <text x="216" y="276" text-anchor="middle" font-size="8" fill="#4a5360" font-family="Satoshi,system-ui">⑦ TANK</text>
+    <text x="92"  y="276" text-anchor="middle" font-size="8" fill="#4a5360" font-family="Satoshi,system-ui">⑨ VALVE</text>
+
+    <!-- sensor 3 label on board -->
+    <text x="216" y="290" text-anchor="middle" font-size="8" fill="#4a5360" font-family="Satoshi,system-ui">⑧ SENSOR (on tank)</text>
+
+  </svg>
+
+  <div class="ctrl-bar">
+    <div class="ctrl-row">
+      <span class="ctrl-label">Fault →</span>
+      <button class="btn" id="btn-pump"   onclick="inject('pump')">Air Pump</button>
+      <button class="btn" id="btn-v1"     onclick="inject('v1')">Valve 1</button>
+      <button class="btn" id="btn-s1"     onclick="inject('s1')">Sensor 1</button>
+      <button class="btn" id="btn-filter" onclick="inject('filter')">Filter</button>
+      <button class="btn" id="btn-v2"     onclick="inject('v2')">Valve 2</button>
+      <button class="btn" id="btn-s2"     onclick="inject('s2')">Sensor 2</button>
+      <button class="btn" id="btn-tank"   onclick="inject('tank')">Tank</button>
+      <button class="btn" id="btn-s3"     onclick="inject('s3')">Sensor 3</button>
+      <button class="btn" id="btn-v3"     onclick="inject('v3')">Valve 3</button>
+      <button class="btn reset" onclick="resetAll()">✓ Reset</button>
+    </div>
+    <div class="status-row" id="sbar">
+      <span class="chip chip-ok">● SYSTEM NORMAL</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const NAMES = {pump:'Air Pump',v1:'Valve 1',s1:'Sensor 1',filter:'Air Filter',v2:'Valve 2',s2:'Sensor 2',tank:'Tank',s3:'Sensor 3',v3:'Valve 3'};
+const states = Object.fromEntries(Object.keys(NAMES).map(k=>[k,'normal']));
+const ORDER  = ['normal','warning','critical'];
+const ticks  = {};
+
+const C = {
+  normal:   {stroke:'#AEBC74', fill:'#2a3140', dotFill:'#AEBC74', stat:'#C6D196', filt:'fn', pipe:'#2f3742'},
+  warning:  {stroke:'#E4C281', fill:'rgba(60,50,28,.85)', dotFill:'#E4C281', stat:'#E4C281', filt:'fw', pipe:'rgba(217,169,74,.65)'},
+  critical: {stroke:'#CB5B3C', fill:'rgba(60,28,24,.9)',  dotFill:'#CB5B3C', stat:'#E0987F', filt:'fc', pipe:'rgba(203,91,60,.8)'}
+};
+
+// which pipe segments belong to each component
+const PIPES = {
+  pump:['p1'], v1:['p1','p2'], s1:['p2','p3'],
+  filter:['p3','p4'], v2:['p4','p5'], s2:['p5','p6'],
+  tank:['p6','p7','p8'], s3:['p7'], v3:['p8','p9']
+};
+
+function getEl(id){ return document.getElementById(id); }
+
+function applyComp(id, state) {
+  const c = C[state];
+
+  // Body shapes
+  const body = getEl('body-'+id) || getEl('body-'+id+'b');
+  if(body){
+    body.setAttribute('stroke', c.stroke);
+    body.setAttribute('fill',   c.fill);
+    body.setAttribute('filter', `url(#${c.filt})`);
+    body.setAttribute('stroke-width', state==='critical'?'2.5':'1.5');
+  }
+
+  // Status text
+  const st = getEl('stat-'+id);
+  if(st){ st.textContent = state.toUpperCase(); st.setAttribute('fill', c.stat); }
+
+  // Needle color for sensors
+  const ndl = getEl('ndl-'+id);
+  if(ndl) ndl.setAttribute('stroke', c.dotFill);
+
+  // Tank dot & fill
+  const dot = getEl('dot-'+id);
+  if(dot){ dot.setAttribute('fill', c.dotFill); dot.setAttribute('filter', `url(#${c.filt})`); }
+  if(id==='tank'){
+    const tf = getEl('tank-fill');
+    if(tf) tf.setAttribute('fill',
+      state==='critical'?'rgba(203,91,60,.14)':
+      state==='warning' ?'rgba(217,169,74,.13)':
+      'rgba(123,138,67,.14)');
+  }
+
+  // Fan blade color for pump
+  if(id==='pump'){
+    document.querySelectorAll('#fan-pump line').forEach(l=>l.setAttribute('stroke',c.dotFill));
+  }
+
+  // Pipes
+  PIPES[id].forEach(pid=>{
+    const p = getEl(pid); if(!p) return;
+    p.setAttribute('stroke', c.pipe);
+    p.setAttribute('stroke-width', state==='critical'?'8':state==='warning'?'7':'7');
+  });
+
+  // Pulse animation for critical
+  clearInterval(ticks[id]);
+  if(state==='critical' && body){
+    let w=1.5,dir=1;
+    ticks[id]=setInterval(()=>{
+      w+=dir*0.12; if(w>3)dir=-1; if(w<1.5)dir=1;
+      body.setAttribute('stroke-width',w.toFixed(2));
+    },30);
+  }
+}
+
+function recalcPipes(){
+  // Reset all pipes, then reapply from component states
+  for(let i=1;i<=9;i++){
+    const p=getEl('p'+i); if(p){ p.setAttribute('stroke','#2f3742'); p.setAttribute('stroke-width','7'); }
+  }
+  Object.entries(PIPES).forEach(([id,segs])=>{
+    const st=states[id]; if(st==='normal') return;
+    const c=C[st];
+    segs.forEach(pid=>{
+      const p=getEl(pid); if(!p)return;
+      // upgrade only (critical wins over warning)
+      const cur=p.getAttribute('stroke');
+      if(st==='critical'||cur==='#2f3742') p.setAttribute('stroke',c.pipe);
+    });
+  });
+}
+
+function cycle(id){
+  const i=ORDER.indexOf(states[id]);
+  states[id]=ORDER[(i+1)%3];
+  applyComp(id,states[id]);
+  recalcPipes();
+  updateBtn(id); updateBar();
+}
+
+function inject(id){
+  states[id]=states[id]==='critical'?'normal':'critical';
+  applyComp(id,states[id]);
+  recalcPipes();
+  updateBtn(id); updateBar();
+}
+
+function resetAll(){
+  Object.keys(states).forEach(id=>{
+    states[id]='normal'; clearInterval(ticks[id]);
+    applyComp(id,'normal');
+    updateBtn(id);
+  });
+  recalcPipes(); updateBar();
+}
+
+function updateBtn(id){
+  const b=getEl('btn-'+id); if(!b) return;
+  b.className='btn'+(states[id]==='warning'?' warn':states[id]==='critical'?' crit':'');
+}
+
+function updateBar(){
+  const bar=getEl('sbar'); if(!bar) return;
+  const crits=Object.entries(states).filter(([,s])=>s==='critical').map(([id])=>NAMES[id]);
+  const warns =Object.entries(states).filter(([,s])=>s==='warning').map(([id])=>NAMES[id]);
+  if(!crits.length&&!warns.length){ bar.innerHTML='<span class="chip chip-ok">● SYSTEM NORMAL</span>'; return; }
+  bar.innerHTML=
+    crits.map(n=>`<span class="chip chip-crit">● FAULT: ${n}</span>`).join('')+
+    warns.map(n=>`<span class="chip chip-warn">⚠ WARN: ${n}</span>`).join('');
+}
+
+// Live sensor gauges
+const BASE={s1:27.4,s2:17.8,s3:11.6};
+const SENSORS={s1:{cx:660,cy:170,r:14},s2:{cx:406,cy:170,r:14},s3:{cx:216,cy:45,r:17}};
+
+function tickSensors(){
+  Object.entries(SENSORS).forEach(([id,g])=>{
+    const st=states[id];
+    let v=BASE[id]+(Math.random()-.5)*1.4;
+    if(st==='warning')  v=BASE[id]*1.42+Math.random()*2.5;
+    if(st==='critical') v=BASE[id]*0.06+Math.random()*.4;
+    const pct=Math.min(Math.max(v/40,0),1);
+    const angle=(pct*200-100)*(Math.PI/180);
+    const nx=g.cx+Math.sin(angle)*g.r;
+    const ny=g.cy-Math.cos(angle)*g.r;
+    const ndl=getEl('ndl-'+id);
+    if(ndl){ ndl.setAttribute('x2',nx.toFixed(1)); ndl.setAttribute('y2',ny.toFixed(1)); }
+    const vel=getEl('val-'+id);
+    if(vel) vel.textContent=v.toFixed(1)+' kPa';
+  });
+}
+
+// Fan spin animation
+let fanAngle=0;
+function spinFan(){
+  fanAngle=(fanAngle+2)%360;
+  const pump=states['pump'];
+  const speed=pump==='critical'?0.3:pump==='warning'?1.5:2;
+  fanAngle=(fanAngle+speed)%360;
+  const fan=getEl('fan-pump');
+  if(fan) fan.setAttribute('transform',`rotate(${fanAngle},830,165)`);
+}
+
+setInterval(tickSensors,1300);
+setInterval(spinFan,16);
+tickSensors();
+</script>

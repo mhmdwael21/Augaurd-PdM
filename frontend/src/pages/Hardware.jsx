@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   getHardware, getHardwarePipeline, getNotifications,
-  injectComponent, setTriggerConfig, clearHardwareBanner,
+  setTriggerConfig, clearHardwareBanner,
 } from '../api'
 import Topbar from '../components/Topbar'
+import SystemSchematic from '../components/SystemSchematic'
 import { useResponsive } from '../hooks/useResponsive'
 import { usePoll } from '../hooks/usePoll'
 
@@ -20,14 +21,6 @@ const MS = ({ name, size = 17, color, style = {} }) => (
 
 const PANEL = { background: '#262C35', border: '1px solid #333b45', borderRadius: 16, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }
 const LABEL = { fontSize: 11, letterSpacing: '.2em', color: '#948979', textTransform: 'uppercase' }
-
-const SCHEMATIC = [
-  { id: 'pump', label: 'Pump', icon: 'mode_fan' },
-  { id: 'valve_in', label: 'Inlet Valve', icon: 'valve' },
-  { id: 'filter', label: 'Filter', icon: 'filter_alt' },
-  { id: 'valve_out', label: 'Outlet Valve', icon: 'valve' },
-  { id: 'tank', label: 'Tank', icon: 'propane_tank' },
-]
 
 function Sparkline({ buf, color }) {
   const W = 240, H = 44, n = buf.length
@@ -93,14 +86,13 @@ export default function Hardware() {
   const tb = hw?.track_b || {}
   const trigger = tb.trigger || {}
   const banner = tb.banner
-  const components = tb.components || []
   const events = tb.events || []
   const draft = cfg || trigger
 
-  async function doInject(component, state) {
-    setBusy(true)
-    try { await injectComponent(component, state) } catch (e) { /* ignore */ } finally { setBusy(false) }
-  }
+  // Schematic auto-fault: map the active Track B trigger to a single culprit.
+  const tbKind = banner?.active ? events[0]?.kind : null
+  const detectedFaults = tbKind === 'air_pump' ? ['pump'] : tbKind === 'tank_leak' ? ['tank'] : []
+
   async function saveCfg() {
     setBusy(true)
     try {
@@ -300,41 +292,13 @@ export default function Hardware() {
           </div>
         </div>
 
-        {/* SCHEMATIC — simulated component states (manual injection) */}
-        <div style={{ ...PANEL }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-            <span style={LABEL}>Component Schematic</span>
-            <span style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: '.08em', padding: '4px 9px', borderRadius: 999, background: 'rgba(148,137,121,.14)', color: '#a59c8c', border: '1px solid rgba(148,137,121,.3)' }}>
-              SIMULATED · NOT MEASURED
-            </span>
-          </div>
-          <p style={{ margin: 0, fontSize: 12, color: '#948979' }}>
-            Secondary path. These buttons set a component's schematic fault state for visualization — they do not
-            reflect physical measurement. The physical pressure trigger above stays primary.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(5,1fr)', gap: 12 }}>
-            {SCHEMATIC.map(c => {
-              const st = components.find(x => x.id === c.id)?.state || 'NORMAL'
-              const faulted = st === 'FAULT'
-              return (
-                <div key={c.id} style={{
-                  border: `1px solid ${faulted ? 'rgba(203,91,60,.45)' : '#333b45'}`, borderRadius: 12,
-                  padding: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-                  background: faulted ? 'rgba(203,91,60,.1)' : '#1e242d',
-                }}>
-                  <MS name={c.icon} size={26} color={faulted ? '#E0987F' : '#948979'} />
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: '#DFD0B8' }}>{c.label}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.08em', color: faulted ? '#E0987F' : '#C6D196' }}>{st}</span>
-                  <button onClick={() => doInject(c.id, faulted ? 'NORMAL' : 'FAULT')} disabled={busy} style={{
-                    width: '100%', padding: '6px', borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                    border: `1px solid ${faulted ? '#7b8a43' : 'rgba(203,91,60,.45)'}`,
-                    background: 'transparent', color: faulted ? '#C6D196' : '#E0987F',
-                  }}>{faulted ? 'Clear' : 'Inject fault'}</button>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        {/* SYSTEM SIGNATURE — live schematic, auto-fault from the physical trigger */}
+        <SystemSchematic
+          connected={connected}
+          gauges={gauges}
+          detectedFaults={detectedFaults}
+          scenario={banner?.scenario}
+        />
       </div>
     </div>
   )

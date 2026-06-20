@@ -14,11 +14,19 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User, UserRole
 from app.models.work_order import WorkOrderStatus
+from app.schemas.maintenance_record_schema import (
+    MaintenanceRecordResponse,
+    WorkOrderComplete,
+)
 from app.schemas.work_order_schema import (
     WorkOrderAssign,
     WorkOrderCreate,
     WorkOrderResponse,
     WorkOrderStatusUpdate,
+)
+from app.services.maintenance_record_service import (
+    complete_work_order_with_record,
+    to_response as maintenance_to_response,
 )
 from app.services.work_order_service import (
     assign_work_order,
@@ -95,3 +103,17 @@ async def assign(
     current_user: User = Depends(require_role(UserRole.ADMIN)),
 ):
     return to_response(assign_work_order(db, wo_id, payload.assigned_to))
+
+
+# ── POST /{id}/complete ── Complete + log maintenance (assignee/admin) ──
+
+@router.post("/{wo_id}/complete", response_model=MaintenanceRecordResponse, summary="Complete work order with a maintenance log")
+async def complete(
+    wo_id: UUID,
+    payload: WorkOrderComplete,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Mark an in-progress work order completed and record the maintenance
+    performed (action + outcome). The outcome feeds production-precision KPIs."""
+    return maintenance_to_response(complete_work_order_with_record(db, wo_id, payload, current_user))

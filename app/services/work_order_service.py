@@ -93,6 +93,14 @@ def update_status(db: Session, wo_id: UUID, new_status: WorkOrderStatus, user: U
             detail="Only the assigned user or an admin can update this work order",
         )
 
+    # Completion must go through POST /work-orders/{id}/complete so a maintenance
+    # record (with its outcome) is always captured — never a bare status flip.
+    if new_status == WorkOrderStatus.COMPLETED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Complete a work order via POST /work-orders/{id}/complete (with a maintenance log).",
+        )
+
     allowed = VALID_TRANSITIONS.get(wo.status, set())
     if new_status not in allowed:
         raise HTTPException(

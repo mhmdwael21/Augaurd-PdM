@@ -20,6 +20,9 @@ class InferenceLog(Base):
     fault_type            = Column(String(60), nullable=True)
     scenario              = Column(String(10), nullable=False)
     alert_id              = Column(UUID(as_uuid=True), nullable=True)
+    # Asset this snapshot belongs to (always APU-01 today). Plain UUID, matching
+    # the alert_id convention on this table (no DB-level FK constraint).
+    equipment_id          = Column(UUID(as_uuid=True), nullable=True)
 
     # 7 analog channels
     tp2             = Column(Float, nullable=True)

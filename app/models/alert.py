@@ -59,6 +59,10 @@ class Alert(Base):
     # Replay/data timestamp at fire time — used to window inference_log for the
     # per-alert chart, so each alert (even loop duplicates) owns its own series.
     data_timestamp = Column(DateTime, nullable=True)
+    # Asset this alert belongs to (always APU-01 today — the single monitored unit).
+    equipment_id = Column(UUID(as_uuid=True), ForeignKey("equipment.id"), nullable=True)
+    # Matched FMEA catalog row (HIGH/CRITICAL only; None for drift with no localization).
+    failure_mode_id = Column(UUID(as_uuid=True), ForeignKey("failure_modes.id"), nullable=True)
 
     # Relationships
     assigned_user = relationship("User", foreign_keys=[assigned_to], lazy="joined")

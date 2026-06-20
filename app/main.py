@@ -24,7 +24,7 @@ from app.models.user import User  # noqa: F401
 from app.models.alert import Alert  # noqa: F401
 from app.models.notification import Notification  # noqa: F401
 from app.models.inference_log import InferenceLog  # noqa: F401
-from app.models.equipment import Equipment  # noqa: F401
+from app.models.equipment import Equipment, APU_01_ID  # noqa: F401
 from app.models.sensor import Sensor  # noqa: F401
 from app.models.failure_mode import FailureMode  # noqa: F401
 
@@ -43,6 +43,22 @@ async def lifespan(app: FastAPI):
         conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS top_sensors JSON"))
         conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS scenario VARCHAR(10)"))
         conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS data_timestamp TIMESTAMP"))
+        # Asset-centric columns (nullable, additive). No FK in DDL — matches the
+        # existing loose convention (inference_log.alert_id has no FK either).
+        conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS equipment_id UUID"))
+        conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS failure_mode_id UUID"))
+        conn.execute(text("ALTER TABLE inference_log ADD COLUMN IF NOT EXISTS equipment_id UUID"))
+        # Backfill any pre-existing rows to the live asset (Decision B). One-time:
+        # a no-op once every row is stamped. failure_mode_id is left NULL on old
+        # rows by design (can't reverse-engineer fault category from old text).
+        conn.execute(
+            text("UPDATE alerts SET equipment_id = :a WHERE equipment_id IS NULL"),
+            {"a": str(APU_01_ID)},
+        )
+        conn.execute(
+            text("UPDATE inference_log SET equipment_id = :a WHERE equipment_id IS NULL"),
+            {"a": str(APU_01_ID)},
+        )
     # Seed the demo fleet + the 15 sensor channels — idempotent.
     # Equipment first: sensors FK the asset.
     from app.core.database import SessionLocal

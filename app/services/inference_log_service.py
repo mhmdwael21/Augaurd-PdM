@@ -12,6 +12,7 @@ from sqlalchemy import func
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from app.core.database import SessionLocal
+from app.models.equipment import APU_01_ID
 from app.models.inference_log import InferenceLog
 
 logger = logging.getLogger(__name__)
@@ -47,6 +48,7 @@ def write_snapshot(snap: dict, scenario: str, alert_id=None) -> None:
                 fault_type=loc.get("fault_type"),
                 scenario=scenario,
                 alert_id=alert_id,
+                equipment_id=APU_01_ID,
                 tp2=sensors.get("TP2"),
                 tp3=sensors.get("TP3"),
                 h1=sensors.get("H1"),

@@ -67,6 +67,8 @@ def create_alert(db: Session, payload: AlertCreate, creator_id: UUID) -> Alert:
         top_sensors=payload.top_sensors,
         scenario=payload.scenario,
         data_timestamp=payload.data_timestamp,
+        equipment_id=payload.equipment_id,
+        failure_mode_id=payload.failure_mode_id,
         created_by=str(creator_id),
     )
     db.add(alert)

@@ -11,11 +11,13 @@ from datetime import datetime
 
 from app.core.database import SessionLocal
 from app.models.alert import AlertSeverity
+from app.models.equipment import APU_01_ID
 from app.models.notification import NotificationType, RecipientType
 from app.models.user import User, UserRole
 from app.schemas.alert_schema import AlertCreate
 from app.schemas.notification_schema import NotificationCreate
 from app.services.alert_service import create_alert
+from app.services.failure_mode_service import get_failure_mode_by_fault_type
 from app.services.notification_service import create_notification
 from app.utils.security import hash_password
 
@@ -127,6 +129,13 @@ def handle_snapshot(snap, scenario=None):
             payload.data_timestamp = datetime.fromisoformat(snap["timestamp"])
         except (KeyError, ValueError, TypeError):
             payload.data_timestamp = None
+        # Asset-centric stamping: every alert comes from the single monitored
+        # unit (APU-01); match the localizer fault_type to the FMEA catalog
+        # (None for drift alerts with no localization — by design).
+        payload.equipment_id = APU_01_ID
+        fault_type = snap.get("localization", {}).get("fault_type")
+        mode = get_failure_mode_by_fault_type(db, fault_type)
+        payload.failure_mode_id = mode.id if mode else None
         alert = create_alert(db, payload, sys_id)
         note = NotificationCreate(
             subject=f"{payload.severity.value.upper()}: {payload.predicted_failure}",

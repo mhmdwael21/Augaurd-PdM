@@ -39,6 +39,8 @@ def _to_history(alert: Alert) -> AlertHistoryResponse:
         top_sensors=alert.top_sensors,
         scenario=alert.scenario,
         data_timestamp=alert.data_timestamp,
+        equipment_id=alert.equipment_id,
+        failure_mode_id=alert.failure_mode_id,
     )
 
 

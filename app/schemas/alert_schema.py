@@ -41,6 +41,12 @@ class AlertCreate(BaseModel):
     data_timestamp: Optional[datetime] = Field(
         None, description="Replay/data timestamp at fire time (for chart windowing)"
     )
+    equipment_id: Optional[UUID] = Field(
+        None, description="Asset this alert belongs to"
+    )
+    failure_mode_id: Optional[UUID] = Field(
+        None, description="Matched FMEA failure mode (HIGH/CRITICAL alerts)"
+    )
 
 
 class AlertUpdate(BaseModel):
@@ -72,6 +78,8 @@ class AlertResponse(BaseModel):
     top_sensors: Optional[List[Any]] = None
     scenario: Optional[str] = None
     data_timestamp: Optional[datetime] = None
+    equipment_id: Optional[UUID] = None
+    failure_mode_id: Optional[UUID] = None
 
     class Config:
         from_attributes = True
@@ -97,6 +105,8 @@ class AlertHistoryResponse(BaseModel):
     top_sensors: Optional[List[Any]] = None
     scenario: Optional[str] = None
     data_timestamp: Optional[datetime] = None
+    equipment_id: Optional[UUID] = None
+    failure_mode_id: Optional[UUID] = None
 
     class Config:
         from_attributes = True

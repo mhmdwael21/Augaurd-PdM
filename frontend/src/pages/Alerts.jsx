@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getAlerts, getUsers, createAlert, updateAlertStatus, escalateAlert, assignAlert } from '../api'
+import { getAlerts, getUsers, createAlert, updateAlertStatus, escalateAlert, assignAlert, getFailureModes, getEquipment } from '../api'
 import Topbar from '../components/Topbar'
 import { severityStyle, statusStyle } from '../tokens'
 import { useResponsive } from '../hooks/useResponsive'
@@ -26,6 +26,14 @@ function scoreColor(s) {
   if (s >= 0.65) return '#E0987F'
   if (s >= 0.5) return '#E4C281'
   return '#C6D196'
+}
+
+// FMEA fault-category chip palette (matches the design-token status colours).
+const FAULT_CAT_STYLE = {
+  pressure: { bg: 'rgba(203,91,60,.14)', fg: '#E0987F', bd: 'rgba(203,91,60,.4)' },
+  thermal:  { bg: 'rgba(217,169,74,.14)', fg: '#E4C281', bd: 'rgba(217,169,74,.4)' },
+  flow:     { bg: 'rgba(123,138,67,.14)', fg: '#C6D196', bd: 'rgba(123,138,67,.4)' },
+  digital:  { bg: 'rgba(148,137,121,.16)', fg: '#cabfa6', bd: 'rgba(148,137,121,.35)' },
 }
 
 function FilterBtn({ label, active, onClick }) {
@@ -81,6 +89,8 @@ export default function Alerts() {
   const [newSev, setNewSev] = useState('medium')
   const [newScore, setNewScore] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
+  const [fmodes, setFmodes] = useState({})  // failure_mode_id -> failure mode (FMEA catalog)
+  const [assetMap, setAssetMap] = useState({})  // equipment_id -> asset_tag
 
   const load = useCallback(async () => {
     try {
@@ -93,6 +103,16 @@ export default function Alerts() {
 
   useEffect(() => { load() }, [load])
   useEffect(() => { const id = setInterval(load, 5000); return () => clearInterval(id) }, [load])
+
+  // FMEA catalog + asset registry are tiny + static — fetch once, key by id.
+  useEffect(() => {
+    getFailureModes()
+      .then(list => setFmodes(Object.fromEntries(list.map(m => [String(m.id), m]))))
+      .catch(() => {})
+    getEquipment()
+      .then(list => setAssetMap(Object.fromEntries(list.map(e => [String(e.id), e.asset_tag]))))
+      .catch(() => {})
+  }, [])
 
   const userMap = Object.fromEntries(users.map(u => [String(u.id), u.username]))
 
@@ -196,6 +216,8 @@ export default function Alerts() {
               const ss = severityStyle(a.severity)
               const sts = statusStyle(a.status)
               const scoreNum = a.anomaly_score != null ? parseFloat(a.anomaly_score) : null
+              const mode = a.failure_mode_id ? fmodes[String(a.failure_mode_id)] : null
+              const assetTag = assetMap[String(a.equipment_id)]
               return (
                 <div key={a.id} className="anim-in" style={{ background: '#222831', border: `1px solid ${isExp ? (a.severity === 'critical' ? 'rgba(203,91,60,.45)' : '#393E46') : '#333b45'}`, borderRadius: 14, overflow: 'hidden', cursor: 'pointer', animationDelay: `${idx * 40}ms` }}
                   onClick={() => setExpanded(e => ({ ...e, [a.id]: !e[a.id] }))}>
@@ -210,6 +232,12 @@ export default function Alerts() {
                       {((a.recommended_action || '').slice(0, 80))}…
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      {assetTag && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', padding: '4px 9px', borderRadius: 7, background: '#1B2027', border: '1px solid #333b45', color: '#cabfa6', whiteSpace: 'nowrap' }} title="Asset">
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#7b8a43' }} />
+                          {assetTag}
+                        </span>
+                      )}
                       {scoreNum != null && (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
                           <span style={{ fontSize: 9.5, color: '#6f6a60', fontWeight: 500, letterSpacing: '.08em' }}>SCORE</span>
@@ -233,6 +261,33 @@ export default function Alerts() {
                           </div>
                         ))}
                       </div>
+                      {mode && (
+                        <div style={{ padding: '14px 15px', background: '#1B2027', borderRadius: 10, border: '1px solid #2f3742', display: 'flex', flexDirection: 'column', gap: 11 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <MS name="troubleshoot" size={16} color="#948979" />
+                              <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: '.1em', color: '#6f6a60', textTransform: 'uppercase' }}>Matched Failure Mode · FMEA</span>
+                            </div>
+                            {(() => {
+                              const cs = FAULT_CAT_STYLE[mode.fault_category] || FAULT_CAT_STYLE.digital
+                              return <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.06em', padding: '3px 9px', borderRadius: 999, textTransform: 'uppercase', background: cs.bg, color: cs.fg, border: `1px solid ${cs.bd}` }}>{mode.fault_category}</span>
+                            })()}
+                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: '#DFD0B8' }}>{mode.name}</span>
+                          {mode.affected_component && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              <span style={{ fontSize: 9.5, fontWeight: 500, letterSpacing: '.1em', color: '#6f6a60', textTransform: 'uppercase' }}>Affected Component</span>
+                              <span style={{ fontSize: 12.5, color: '#cabfa6' }}>{mode.affected_component}</span>
+                            </div>
+                          )}
+                          {mode.typical_symptoms && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              <span style={{ fontSize: 9.5, fontWeight: 500, letterSpacing: '.1em', color: '#6f6a60', textTransform: 'uppercase' }}>Typical Symptoms</span>
+                              <span style={{ fontSize: 12.5, color: '#cabfa6', lineHeight: 1.5 }}>{mode.typical_symptoms}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <div style={{ padding: '13px 15px', background: '#1B2027', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 5 }}>
                         <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: '.1em', color: '#6f6a60', textTransform: 'uppercase' }}>Recommended Action</span>
                         <span style={{ fontSize: 13, color: '#cabfa6', lineHeight: 1.5 }}>{a.recommended_action}</span>

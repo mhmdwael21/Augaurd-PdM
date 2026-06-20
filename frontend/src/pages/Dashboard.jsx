@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getDashboard, getAlerts, getNotifications, controlReplay } from '../api'
+import { getDashboard, getAlerts, getNotifications, controlReplay, getEquipment } from '../api'
 import Topbar from '../components/Topbar'
 import AnomalyChart from '../components/AnomalyChart'
 import Toast from '../components/Toast'
@@ -87,6 +87,8 @@ export default function Dashboard() {
   const [pollMs, setPollMs] = useState(1000)
   const { data: snap } = usePoll(getDashboard, pollMs)
   const { data: alerts } = usePoll(getAlerts, 5000)
+  const { data: equipment } = usePoll(getEquipment, 60000)  // asset registry (static; tag lookup)
+  const assetMap = Object.fromEntries((equipment || []).map(e => [String(e.id), e.asset_tag]))
   const { data: notifs } = usePoll(getNotifications, 10000)
 
   const unreadCount = (notifs || []).filter(n => !n.is_read).length
@@ -397,6 +399,12 @@ export default function Dashboard() {
                   <span style={{ fontSize: 12, color: '#a59c8c', lineHeight: 1.35 }}>{a.recommended_action}</span>
                   <span style={{ fontSize: 10.5, color: '#7c756a' }}>{a.id.slice(0, 8)} · {fmtDate(a.timestamp)}</span>
                 </div>
+                {assetMap[String(a.equipment_id)] && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', padding: '4px 9px', borderRadius: 7, background: '#1B2027', border: '1px solid #333b45', color: '#cabfa6', whiteSpace: 'nowrap' }} title="Asset">
+                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#7b8a43' }} />
+                    {assetMap[String(a.equipment_id)]}
+                  </span>
+                )}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
                   <span style={{ fontSize: 10, color: '#6f6a60' }}>SCORE</span>
                   <span style={{ fontWeight: 700, fontSize: 15, color: '#E0987F' }}>{a.anomaly_score != null ? Number(a.anomaly_score).toFixed(2) : '—'}</span>

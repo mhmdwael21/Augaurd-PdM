@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useResponsive } from '../hooks/useResponsive'
@@ -29,15 +29,16 @@ export default function Topbar({ unreadCount = 0 }) {
   const { isMobile } = useResponsive()
   const [menuOpen, setMenuOpen] = useState(false)
 
+  // Grouped: Monitoring | Operations | Analytics+Admin. Notifications lives on
+  // the 🔔 bell (top-right), so it's not a text tab. `divider` starts a group.
   const nav = [
     { label: 'Dashboard',     path: '/dashboard' },
     { label: 'Fleet',         path: '/fleet' },
     { label: 'Prototype',     path: '/hardware' },
-    { label: 'Alerts',        path: '/alerts' },
+    { label: 'Alerts',        path: '/alerts', divider: true },
     { label: 'Work Orders',   path: '/work-orders' },
     { label: 'Maintenance',   path: '/maintenance' },
-    { label: 'Notifications', path: '/notifications' },
-    { label: 'Reports',       path: '/reports' },
+    { label: 'Reports',       path: '/reports', divider: true },
     { label: 'Users',         path: '/users', adminOnly: true },
   ]
 
@@ -75,20 +76,25 @@ export default function Topbar({ unreadCount = 0 }) {
         {!isMobile && (
           <>
             <div style={{ width: 1, height: 22, background: '#333b45' }} />
-            <nav style={{ display: 'flex', gap: 4, flex: 1 }}>
-              {nav.map(({ label, path, adminOnly }) => {
+            <nav style={{ display: 'flex', gap: 4, flex: 1, alignItems: 'center' }}>
+              {nav.map(({ label, path, adminOnly, divider }) => {
                 if (adminOnly && role !== 'admin') return null
                 const active = location.pathname === path
-                return active ? (
-                  <span key={path} style={{
-                    padding: '6px 13px', borderRadius: 8, fontSize: 13, fontWeight: 600,
-                    color: '#DFD0B8', background: '#393E46', cursor: 'default',
-                  }}>{label}</span>
-                ) : (
-                  <Link key={path} to={path} style={{
-                    padding: '6px 13px', borderRadius: 8, fontSize: 13, fontWeight: 500,
-                    color: '#948979',
-                  }}>{label}</Link>
+                return (
+                  <Fragment key={path}>
+                    {divider && <span style={{ width: 1, height: 18, background: '#333b45', margin: '0 5px' }} />}
+                    {active ? (
+                      <span style={{
+                        padding: '6px 13px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                        color: '#DFD0B8', background: '#393E46', cursor: 'default',
+                      }}>{label}</span>
+                    ) : (
+                      <Link to={path} style={{
+                        padding: '6px 13px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                        color: '#948979',
+                      }}>{label}</Link>
+                    )}
+                  </Fragment>
                 )
               })}
             </nav>

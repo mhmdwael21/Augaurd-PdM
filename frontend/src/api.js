@@ -58,6 +58,17 @@ export const uploadCsv = (file) => {
   return api('/dashboard/upload', { method: 'POST', body: fd })
 }
 
+// Equipment / Fleet (trailing slash avoids a 307 redirect that drops the auth header)
+export const getEquipment     = ()   => api('/equipment/')
+export const getEquipmentItem = (id) => api('/equipment/' + id)
+
+// Sensors (registry)
+export const getSensors = (equipmentId) =>
+  api('/sensors/' + (equipmentId ? '?equipment_id=' + equipmentId : ''))
+
+// Failure modes (FMEA catalog)
+export const getFailureModes = () => api('/failure-modes/')
+
 // Alerts
 export const getAlerts = (params = {}) => {
   if (DEMO) return mock.mockGetAlerts()

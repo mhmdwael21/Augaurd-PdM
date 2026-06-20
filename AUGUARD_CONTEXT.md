@@ -13,6 +13,7 @@
 | 2026-06-19 | Added ESP32 hardware integration (Track A pipeline demo + Track B physical trigger) — see Section 21 |
 | 2026-06-20 | Alert severity rework (IF-score bands), FAILURE state removed, inference_log model added — see Section 22 |
 | 2026-06-21 | Phase 1 of data-model expansion: asset-centric layer (equipment, sensors, FMEA failure_modes) + alert/log stamping + Fleet/Asset-Detail UI, FMEA alert cards, per-alert asset chips — see Section 23 |
+| 2026-06-21 | Phase 2 (work_orders + auto-spawn on HIGH/CRITICAL) and Phase 3 (maintenance_records + outcome feedback + precision/MTTR KPIs) — backend + frontend (Work Orders + Maintenance pages) — see Section 24 |
 
 ---
 
@@ -632,9 +633,10 @@ Mohamed Wael (primary dev), Eman Mousa, Eman Hussien, Hana Gohar, Fatema Salah, 
 
 - [x] ESP32 hardware integration — backend + frontend done, route/service smoke-tested (Section 21)
 - [x] Data-model expansion **Phase 1** — equipment + sensors + failure_modes tables, alert/log stamping, Fleet/Asset-Detail UI, FMEA cards, asset chips (Section 23)
-- [ ] Data-model expansion **Phase 2** — `work_orders` (auto-spawn on HIGH/CRITICAL alerts) — NEXT
-- [ ] Data-model expansion **Phase 3** — `maintenance_records` (+ outcome feedback / KPIs)
-- [ ] Data-model expansion **Phase 4** — `spare_parts` + `maintenance_parts` (inventory + low-stock)
+- [x] Data-model expansion **Phase 2** — `work_orders` + auto-spawn on HIGH/CRITICAL, Work Orders page (Section 24)
+- [x] Data-model expansion **Phase 3** — `maintenance_records` + outcome feedback + precision/MTTR KPIs, Maintenance page (Section 24)
+- [ ] Data-model expansion **Phase 4** — `spare_parts` + `maintenance_parts` (inventory + low-stock) — NEXT
+- [ ] UI: top nav now has 9 tabs — consider grouping/trimming
 - [ ] End-to-end test with the real board on the bench (reflash sketch first — new URL + device key)
 - [ ] Tune `HW_TRIGGER_DELTA_KPA` / `HW_TRIGGER_WINDOW_S` against real pressure-drop behaviour
 
@@ -835,6 +837,68 @@ Commits: `b610a8e` → `d48a47b` (8 commits, pushed to `main`).
 
 **Utility:** `scripts/reset_runtime_data.py` wipes alerts/notifications/inference_log
 (keeps users/equipment/sensors/failure_modes) for a clean, fully-stamped start.
+
+---
+
+## 24. Data-Model Expansion — Phases 2 & 3 (Work Orders + Maintenance)
+
+Closes the loop: **anomaly → alert → work order → maintenance record → outcome →
+KPIs**. Builds on Section 23. Additive; ML pipeline untouched.
+
+### Phase 2 — `work_orders`
+The actionable task spawned by an alert.
+
+**Table** (`app/models/work_order.py`): `id, alert_id (FK), equipment_id (FK),
+title, description, priority (AlertSeverity), status, assigned_to (FK users),
+created_by (FK users), due_date, created_at, completed_at`.
+Lifecycle `open → in_progress → completed | cancelled` (`VALID_TRANSITIONS`).
+
+**Auto-spawn (Decision E, no dedup):** `decision_service.handle_snapshot` creates
+one OPEN work order per **HIGH/CRITICAL** alert, pre-filled from the alert +
+matched failure mode. Wrapped in try/except so it can never break the alert flow.
+
+**RBAC (Decision G):** admin creates/assigns; assigned technician/operator (or
+admin) advance status; list/view role-scoped.
+
+**API:** `POST /work-orders` (admin), `GET /work-orders` (+`?status`,`?equipment_id`),
+`GET /{id}`, `PUT /{id}/status`, `PUT /{id}/assign`, `POST /{id}/complete` (Phase 3).
+
+**Frontend:** `pages/WorkOrders.jsx` (stat cards, filters, lifecycle actions,
+assign/create modals, asset chip); Work Orders section on `AssetDetail.jsx`.
+
+### Phase 3 — `maintenance_records`
+The completed-work log + the **outcome feedback** that grades the AI.
+
+**Table** (`app/models/maintenance_record.py`): `id, work_order_id (FK),
+equipment_id (FK), performed_by (FK users), maintenance_type
+(corrective|preventive|inspection), action_taken, outcome
+(failure_confirmed|no_fault_found|partial|inconclusive), started_at,
+completed_at, downtime_minutes, labor_cost, notes`.
+
+**Complete = mandatory log (Decision: atomic).** `POST /work-orders/{id}/complete`
+creates the maintenance record AND marks the WO completed in one transaction.
+`work_order_service.update_status` now **blocks bare `→ completed`** — completion
+must go through `/complete`, so every closed job carries an outcome.
+
+**Feedback / precision (Decision H):** `GET /maintenance-records/stats` →
+**production precision = failure_confirmed / (failure_confirmed + no_fault_found)**
+(confirmed = AI true positive; no_fault = false positive) + avg downtime (MTTR).
+
+**RBAC:** technician + operator (and admin) log/complete.
+
+**API:** `POST /maintenance-records`, `GET /maintenance-records` (role-scoped),
+`GET /maintenance-records/stats`, `GET /{id}`.
+
+**Frontend:** `pages/Maintenance.jsx` (KPI header: AI precision, TP/FP, MTTR,
+records + records list); WorkOrders "Complete & Log" modal (action + outcome).
+
+### Utility
+`scripts/reset_runtime_data.py` wipes the full operational slate
+(maintenance_records + work_orders + alerts + notifications + inference_log,
+FK-safe); keeps users/equipment/sensors/failure_modes.
+
+### Commits
+Phase 2 `c801509`(+`3c8678b` fe) · Phase 3 `2b766ec`(+`ecddc4b` fe). All on `main`.
 
 ---
 

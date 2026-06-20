@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getReportsAlerts, getNotifications, getInferenceHistory, getInferenceStats, getInferenceEpisode } from '../api'
+import { getReportsAlerts, getNotifications, getInferenceHistory, getInferenceStats, getInferenceEpisode, getEquipment } from '../api'
 import Topbar from '../components/Topbar'
 import {
   SensorOverlayChart, RulCurveChart, FaultDonutChart, KnownVsNovelChart, ANALOG_SENSORS,
@@ -756,6 +756,7 @@ export default function Reports() {
   const { isMobile } = useResponsive()
 
   const [alerts,      setAlerts]      = useState([])
+  const [assetMap,    setAssetMap]    = useState({})  // equipment_id -> asset_tag
   const [loading,     setLoading]     = useState(true)
   const [error,       setError]       = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -829,6 +830,13 @@ export default function Reports() {
   }, [fromDate, toDate, statusFilter, sevFilter])
 
   useEffect(() => { fetchAlerts() }, [fetchAlerts])
+
+  // Asset registry — fetch once, key by id to resolve equipment_id -> asset_tag.
+  useEffect(() => {
+    getEquipment()
+      .then(list => setAssetMap(Object.fromEntries(list.map(e => [String(e.id), e.asset_tag]))))
+      .catch(() => {})
+  }, [])
 
   // Apply client-side scenario filter then sort
   const displayed = useMemo(() => {
@@ -1207,6 +1215,9 @@ export default function Reports() {
                     <ColHead field="severity"      label="SEVERITY"         w={96} />
                     <ColHead field="status"        label="STATUS"           w={116} />
                     <ColHead field="anomaly_score" label="SCORE"            w={76} />
+                    <th style={{ padding: '11px 12px', fontSize: 10.5, fontWeight: 600, color: '#6f6a60', letterSpacing: '.05em', textAlign: 'left', width: 92 }}>
+                      ASSET
+                    </th>
                     <th style={{ padding: '11px 12px', fontSize: 10.5, fontWeight: 600, color: '#6f6a60', letterSpacing: '.05em', textAlign: 'left' }}>
                       ASSIGNED TO
                     </th>
@@ -1253,6 +1264,15 @@ export default function Reports() {
                           <td style={{ padding: '13px 12px', fontSize: 12.5, fontWeight: 600, color: scoreColor(alert.anomaly_score), whiteSpace: 'nowrap' }}>
                             {alert.anomaly_score != null ? (alert.anomaly_score * 100).toFixed(1) + ' %' : '—'}
                           </td>
+                          <td style={{ padding: '13px 12px' }}>
+                            {assetMap[String(alert.equipment_id)]
+                              ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 700, letterSpacing: '.04em', padding: '4px 9px', borderRadius: 7, background: '#1B2027', border: '1px solid #333b45', color: '#cabfa6', whiteSpace: 'nowrap' }}>
+                                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#7b8a43' }} />
+                                  {assetMap[String(alert.equipment_id)]}
+                                </span>
+                              : <span style={{ color: '#3d4654', fontSize: 11 }}>—</span>
+                            }
+                          </td>
                           <td style={{ padding: '13px 12px', fontSize: 12, color: '#7c756a' }}>
                             {alert.assigned_to_username
                               ? alert.assigned_to_username
@@ -1266,7 +1286,7 @@ export default function Reports() {
 
                         {isExpanded && (
                           <tr>
-                            <td colSpan={8} style={{ padding: 0, borderBottom: '1px solid #252d38' }}>
+                            <td colSpan={9} style={{ padding: 0, borderBottom: '1px solid #252d38' }}>
                               <DetailPanel
                                 alert={alert}
                                 scenario={scenario}

@@ -34,6 +34,7 @@ export default function Topbar({ unreadCount = 0 }) {
     { label: 'Fleet',         path: '/fleet' },
     { label: 'Prototype',     path: '/hardware' },
     { label: 'Alerts',        path: '/alerts' },
+    { label: 'Work Orders',   path: '/work-orders' },
     { label: 'Notifications', path: '/notifications' },
     { label: 'Reports',       path: '/reports' },
     { label: 'Users',         path: '/users', adminOnly: true },

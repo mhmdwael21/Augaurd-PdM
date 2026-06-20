@@ -69,6 +69,19 @@ export const getSensors = (equipmentId) =>
 // Failure modes (FMEA catalog)
 export const getFailureModes = () => api('/failure-modes/')
 
+// Work orders
+export const getWorkOrders = (params = {}) => {
+  const qs = new URLSearchParams()
+  if (params.status)       qs.set('status', params.status)
+  if (params.equipment_id) qs.set('equipment_id', params.equipment_id)
+  const q = qs.toString()
+  return api('/work-orders/' + (q ? '?' + q : ''))
+}
+export const getWorkOrder          = (id)              => api('/work-orders/' + id)
+export const createWorkOrder       = (body)            => api('/work-orders/', { method: 'POST', body: JSON.stringify(body) })
+export const updateWorkOrderStatus = (id, status)      => api(`/work-orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
+export const assignWorkOrder       = (id, assigned_to) => api(`/work-orders/${id}/assign`, { method: 'PUT', body: JSON.stringify({ assigned_to }) })
+
 // Alerts
 export const getAlerts = (params = {}) => {
   if (DEMO) return mock.mockGetAlerts()

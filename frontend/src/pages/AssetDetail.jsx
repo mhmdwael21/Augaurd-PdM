@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getEquipmentItem, getAlerts, getSensors } from '../api'
+import { getEquipmentItem, getAlerts, getSensors, getWorkOrders } from '../api'
 import Topbar from '../components/Topbar'
 import { useResponsive } from '../hooks/useResponsive'
 import { C, severityStyle, statusStyle } from '../tokens'
@@ -34,6 +34,18 @@ function sensorStatusStyle(s) {
   return m[s] || m.offline
 }
 
+const WO_LABEL = { open: 'Open', in_progress: 'In Progress', completed: 'Completed', cancelled: 'Cancelled' }
+
+function woStatusStyle(st) {
+  const m = {
+    open:        { background: C.critBg, color: C.critText, border: `1px solid ${C.critBd}` },
+    in_progress: { background: C.warnBg, color: C.warnText, border: `1px solid ${C.warnBd}` },
+    completed:   { background: C.normalBg, color: C.normalText, border: `1px solid ${C.normalBd}` },
+    cancelled:   { background: 'rgba(148,137,121,.16)', color: C.textMuted, border: `1px solid ${C.borderStrong}` },
+  }
+  return m[st] || m.open
+}
+
 function fmtDate(ts) {
   if (!ts) return '—'
   const d = new Date(ts)
@@ -58,18 +70,21 @@ export default function AssetDetail() {
   const [asset, setAsset] = useState(null)
   const [alerts, setAlerts] = useState([])
   const [sensors, setSensors] = useState([])
+  const [workOrders, setWorkOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
   const load = useCallback(async () => {
     try {
-      const [eq, al, sn] = await Promise.all([
+      const [eq, al, sn, wo] = await Promise.all([
         getEquipmentItem(assetId),
         getAlerts().catch(() => []),
         getSensors(assetId).catch(() => []),
+        getWorkOrders({ equipment_id: assetId }).catch(() => []),
       ])
       setAsset(eq)
       setSensors(Array.isArray(sn) ? sn : [])
+      setWorkOrders(Array.isArray(wo) ? wo : [])
       setAlerts((Array.isArray(al) ? al : []).filter(a => String(a.equipment_id) === String(assetId)))
     } catch {
       setNotFound(true)
@@ -197,6 +212,36 @@ export default function AssetDetail() {
                           <span style={{ fontSize: 11, color: C.textDim }}>{fmtDate(a.timestamp)}</span>
                         </div>
                         <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.08em', padding: '5px 11px', borderRadius: 999, whiteSpace: 'nowrap', ...sts }}>{(a.status || '').toUpperCase()}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* WORK ORDERS FOR THIS ASSET */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <h2 style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary, letterSpacing: '.01em' }}>Work Orders</h2>
+                <span style={{ fontSize: 12, color: C.textDim }}>{workOrders.length} total</span>
+              </div>
+              {workOrders.length === 0 ? (
+                <div style={{ padding: 32, textAlign: 'center', background: C.bgSurface, border: `1px dashed ${C.borderStrong}`, borderRadius: 14, color: C.textDim, fontSize: 13 }}>
+                  No work orders for this asset.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {workOrders.map(o => {
+                    const ps = severityStyle(o.priority)
+                    const ws = woStatusStyle(o.status)
+                    return (
+                      <div key={o.id} style={{ background: C.bgSurface, border: `1px solid ${C.borderStrong}`, borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.1em', padding: '5px 10px', borderRadius: 7, whiteSpace: 'nowrap', ...ps }}>{(o.priority || '').toUpperCase()}</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 180 }}>
+                          <span style={{ fontSize: 13.5, fontWeight: 600, color: C.textPrimary, lineHeight: 1.3 }}>{o.title}</span>
+                          <span style={{ fontSize: 11, color: C.textDim }}>{fmtDate(o.created_at)} · {o.assigned_to_username || 'Unassigned'}</span>
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.08em', padding: '5px 11px', borderRadius: 999, whiteSpace: 'nowrap', ...ws }}>{(WO_LABEL[o.status] || o.status).toUpperCase()}</span>
                       </div>
                     )
                   })}

@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getReportsAlerts, getNotifications } from '../api'
+import { getReportsAlerts, getNotifications, getInferenceHistory, getInferenceStats, getInferenceEpisode } from '../api'
 import Topbar from '../components/Topbar'
+import {
+  SensorOverlayChart, RulCurveChart, FaultDonutChart, KnownVsNovelChart, ANALOG_SENSORS,
+} from '../components/ReportCharts'
 import { severityStyle, statusStyle } from '../tokens'
 import { useResponsive } from '../hooks/useResponsive'
 import { getDiagnosis, getResolutionMetrics } from '../utils/diagnosisEngine'
@@ -40,12 +43,39 @@ function scoreColor(s) {
   return '#C6D196'
 }
 
-// Deterministic: the decision engine writes "(known signature)" or "(UNKNOWN)" / "Novel " prefix
+// Localizer sensor name → inference_log column key (analog channels only)
+const SENSOR_KEY = {
+  TP2: 'tp2', TP3: 'tp3', H1: 'h1', DV_pressure: 'dv_pressure',
+  Reservoirs: 'reservoirs', Oil_temperature: 'oil_temperature', Motor_current: 'motor_current',
+}
+
+// Default the per-alert overlay to the first localizer top-3 sensor that we
+// store as an analog column; fall back to TP2 (digital faults / drift alerts).
+function pickDefaultSensor(topSensors) {
+  if (Array.isArray(topSensors)) {
+    for (const t of topSensors) {
+      const k = SENSOR_KEY[t?.sensor]
+      if (k) return k
+    }
+  }
+  return 'tp2'
+}
+
+// Legacy fallback for alerts created before scenario was stored: infer from the
+// classifier verdict baked into the text. NOTE verdict != scenario, so this is
+// only a best-effort fallback — prefer the stored alert.scenario.
 function detectScenario(pf) {
   if (!pf) return 'Unknown'
   if (pf.includes('(known signature)')) return 'F3'
   if (pf.includes('(UNKNOWN)') || pf.startsWith('Novel ')) return 'F4'
   return 'Unknown'
+}
+
+// Ground-truth scenario: the value the replay engine stored on the alert.
+// Falls back to the text heuristic only for older, un-stamped alerts.
+function alertScenario(alert) {
+  if (alert?.scenario === 'F3' || alert?.scenario === 'F4') return alert.scenario
+  return detectScenario(alert?.predicted_failure)
 }
 
 function scenarioStyle(sc) {
@@ -74,6 +104,27 @@ function FilterBtn({ label, active, onClick }) {
       color: active ? '#DFD0B8' : '#948979',
       fontWeight: 600, fontSize: 12, cursor: 'pointer', letterSpacing: '.02em',
     }}>{label}</button>
+  )
+}
+
+function ChartCard({ title, subtitle, right, children }) {
+  return (
+    <div style={{
+      background: '#222831', border: '1px solid #333b45',
+      borderRadius: 14, padding: '16px 18px',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+        gap: 10, marginBottom: 12,
+      }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: '#6f6a60', letterSpacing: '.06em' }}>{title}</div>
+          {subtitle && <div style={{ fontSize: 11, color: '#4a5260', marginTop: 3 }}>{subtitle}</div>}
+        </div>
+        {right}
+      </div>
+      {children}
+    </div>
   )
 }
 
@@ -130,11 +181,11 @@ function maybeNewPage(doc, y, needed = 18) {
   return y
 }
 
-async function exportEpisodePdf(alert, username) {
+async function exportEpisodePdf(alert, username, chartNode) {
   const { jsPDF } = await import('jspdf')
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const W = 210, mg = 18
-  const scenario = detectScenario(alert.predicted_failure)
+  const scenario = alertScenario(alert)
   const genAt = fmtDate(new Date().toISOString())
 
   // Header bar
@@ -304,6 +355,41 @@ async function exportEpisodePdf(alert, username) {
     })
   }
 
+  // ── Episode Timeline (charts) ─────────────────────────────────────
+  if (chartNode) {
+    try {
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(chartNode, {
+        backgroundColor: '#222831', scale: 2, logging: false, useCORS: true,
+      })
+      const img = canvas.toDataURL('image/png')
+
+      // Charts get their own page so they never collide with the text above.
+      doc.addPage()
+      let cy = 20
+      doc.setFontSize(13)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(35, 35, 35)
+      doc.text('Episode Timeline', mg, cy)
+      cy += 3
+      doc.setDrawColor(210, 200, 185)
+      doc.setLineWidth(0.35)
+      cy += 5
+      doc.line(mg, cy, W - mg, cy)
+      cy += 8
+
+      // Fit width, cap height so it always stays on the page.
+      let drawW = W - mg * 2
+      let drawH = canvas.height * drawW / canvas.width
+      const maxH = 250
+      if (drawH > maxH) { drawH = maxH; drawW = canvas.width * drawH / canvas.height }
+      const x = (W - drawW) / 2
+      doc.addImage(img, 'PNG', x, cy, drawW, drawH)
+    } catch (e) {
+      // Chart capture is best-effort — the rest of the PDF is unaffected.
+    }
+  }
+
   // ── Footer (last page) ────────────────────────────────────────────
   const lastPage = doc.internal.getNumberOfPages()
   doc.setPage(lastPage)
@@ -389,7 +475,7 @@ async function exportListPdf(displayed, fromDate, toDate, sevFilter, statusFilte
       doc.addPage()
       y = 16
     }
-    const sc = detectScenario(alert.predicted_failure)
+    const sc = alertScenario(alert)
     const pf = (alert.predicted_failure || '—').length > 72
       ? (alert.predicted_failure || '—').slice(0, 71) + '…'
       : (alert.predicted_failure || '—')
@@ -427,6 +513,19 @@ async function exportListPdf(displayed, fromDate, toDate, sevFilter, statusFilte
 function DetailPanel({ alert, scenario, username, onClose }) {
   const rules   = getDiagnosis(alert.predicted_failure)
   const metrics = getResolutionMetrics(alert)
+
+  const chartRef = useRef(null)
+  const [episode,   setEpisode]   = useState(null)  // null = loading
+  const [sensorKey, setSensorKey] = useState(() => pickDefaultSensor(alert.top_sensors))
+  const sensorLabel = ANALOG_SENSORS.find(s => s.key === sensorKey)?.label || ''
+
+  useEffect(() => {
+    let cancelled = false
+    getInferenceEpisode(alert.id)
+      .then(d => { if (!cancelled) setEpisode(d) })
+      .catch(() => { if (!cancelled) setEpisode({ entries: [] }) })
+    return () => { cancelled = true }
+  }, [alert.id])
 
   return (
     <div style={{
@@ -496,7 +595,7 @@ function DetailPanel({ alert, scenario, username, onClose }) {
           <button
             onClick={e => {
               e.stopPropagation()
-              exportEpisodePdf(alert, username)
+              exportEpisodePdf(alert, username, chartRef.current)
             }}
             style={{
               display: 'flex', alignItems: 'center', gap: 7,
@@ -522,6 +621,63 @@ function DetailPanel({ alert, scenario, username, onClose }) {
             Close
           </button>
         </div>
+      </div>
+
+      {/* ── Episode Timeline (charts) ──────────────────────────────── */}
+      <div style={{
+        marginTop: 20, paddingTop: 16,
+        borderTop: '1px solid rgba(57,62,70,.5)',
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          gap: 10, marginBottom: 12, flexWrap: 'wrap',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#6f6a60', letterSpacing: '.06em' }}>
+              EPISODE TIMELINE
+            </span>
+            <span style={{ fontSize: 10, color: '#4a5260' }}>
+              ~80&nbsp;min window around the alert · stored inference snapshots
+            </span>
+          </div>
+          <select
+            value={sensorKey}
+            onChange={e => setSensorKey(e.target.value)}
+            style={{
+              padding: '5px 8px', borderRadius: 7, border: '1px solid #333b45',
+              background: '#1B2027', color: '#DFD0B8', fontSize: 11.5,
+              colorScheme: 'dark', outline: 'none', cursor: 'pointer',
+            }}
+          >
+            {ANALOG_SENSORS.map(s => (
+              <option key={s.key} value={s.key}>{s.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {episode === null ? (
+          <div style={{ color: '#4a5260', fontSize: 12.5, padding: '24px 0', textAlign: 'center' }}>
+            Loading episode timeline…
+          </div>
+        ) : (
+          <div ref={chartRef} style={{
+            display: 'flex', flexDirection: 'column', gap: 14,
+            background: '#222831', padding: 14, borderRadius: 10,
+          }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#6f6a60', marginBottom: 8 }}>
+                {sensorLabel} vs Anomaly Score
+              </div>
+              <SensorOverlayChart data={episode.entries} sensorKey={sensorKey} sensorLabel={sensorLabel} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#6f6a60', marginBottom: 8 }}>
+                Remaining Useful Life
+              </div>
+              <RulCurveChart data={episode.entries} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Resolution Metrics ─────────────────────────────────────── */}
@@ -604,6 +760,13 @@ export default function Reports() {
   const [error,       setError]       = useState(null)
   const [unreadCount, setUnreadCount] = useState(0)
 
+  const [inferenceEntries, setInferenceEntries] = useState([])
+  const [inferenceStats,   setInferenceStats]   = useState(null)
+  const [insightScenario,  setInsightScenario]  = useState('F3')
+  const [overlaySensor,    setOverlaySensor]    = useState('tp2')
+  const [statsF3,          setStatsF3]          = useState(null)
+  const [statsF4,          setStatsF4]          = useState(null)
+
   // Server-side filters
   const [fromDate,      setFromDate]      = useState('')
   const [toDate,        setToDate]        = useState('')
@@ -623,6 +786,22 @@ export default function Reports() {
     getNotifications()
       .then(ns => setUnreadCount(ns.filter(n => !n.is_read).length))
       .catch(() => {})
+  }, [])
+
+  // Per-scenario history + stats (re-fetched when the insight scenario changes)
+  useEffect(() => {
+    getInferenceHistory({ scenario: insightScenario, limit: 2000 })
+      .then(d => setInferenceEntries(d.entries || []))
+      .catch(() => {})
+    getInferenceStats({ scenario: insightScenario })
+      .then(setInferenceStats)
+      .catch(() => {})
+  }, [insightScenario])
+
+  // Both scenarios' verdict stats for the Known-vs-Novel comparison (once)
+  useEffect(() => {
+    getInferenceStats({ scenario: 'F3' }).then(setStatsF3).catch(() => {})
+    getInferenceStats({ scenario: 'F4' }).then(setStatsF4).catch(() => {})
   }, [])
 
   const fetchAlerts = useCallback(async () => {
@@ -655,7 +834,7 @@ export default function Reports() {
   const displayed = useMemo(() => {
     let rows = alerts
     if (scenarioFilter !== 'all') {
-      rows = rows.filter(a => detectScenario(a.predicted_failure) === scenarioFilter)
+      rows = rows.filter(a => alertScenario(a) === scenarioFilter)
     }
     return sortRows(rows, sortField, sortDir)
   }, [alerts, scenarioFilter, sortField, sortDir])
@@ -665,8 +844,8 @@ export default function Reports() {
     total:    displayed.length,
     critical: displayed.filter(a => a.severity === 'critical').length,
     resolved: displayed.filter(a => a.status === 'resolved').length,
-    f3:       displayed.filter(a => detectScenario(a.predicted_failure) === 'F3').length,
-    f4:       displayed.filter(a => detectScenario(a.predicted_failure) === 'F4').length,
+    f3:       displayed.filter(a => alertScenario(a) === 'F3').length,
+    f4:       displayed.filter(a => alertScenario(a) === 'F4').length,
   }), [displayed])
 
   function toggleSort(field) {
@@ -876,6 +1055,122 @@ export default function Reports() {
           ))}
         </div>
 
+        {/* ── ML Insights ── */}
+        <div style={{ marginBottom: 22 }}>
+          {/* header + scenario toggle */}
+          <div style={{
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+            marginBottom: 14, gap: 12, flexWrap: 'wrap',
+          }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#DFD0B8', letterSpacing: '-.01em' }}>
+                ML Insights
+              </div>
+              <div style={{ fontSize: 12, color: '#6f6a60', marginTop: 3 }}>
+                Stored inference snapshots — detection, remaining life, localization & novelty
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              <span style={{ fontSize: 10, fontWeight: 600, color: '#6f6a60', letterSpacing: '.06em' }}>SCENARIO</span>
+              <div style={{ display: 'flex', gap: 4 }}>
+                {['F3', 'F4'].map(s => (
+                  <FilterBtn key={s}
+                    label={s === 'F3' ? 'F3 — Known' : 'F4 — Novel'}
+                    active={insightScenario === s}
+                    onClick={() => setInsightScenario(s)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ML stat cards (selected scenario) */}
+          {inferenceStats && (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? 'repeat(2,1fr)' : 'repeat(4,1fr)',
+              gap: 10, marginBottom: 14,
+            }}>
+              {[
+                ['Avg Anomaly Score', inferenceStats.avg_score != null ? (inferenceStats.avg_score * 100).toFixed(1) + ' %' : '—', '#cabfa6'],
+                ['Anomaly Windows',   inferenceStats.anomaly_count, '#E0987F'],
+                ['Drift Windows',     inferenceStats.drift_count,   '#E4C281'],
+                ['Time in Critical',  inferenceStats.zone_distribution?.CRITICAL != null
+                  ? inferenceStats.zone_distribution.CRITICAL.toFixed(1) + ' %' : '0 %', '#E0987F'],
+              ].map(([label, value, color]) => (
+                <div key={label} style={{
+                  background: '#222831', border: '1px solid #333b45',
+                  borderRadius: 12, padding: '12px 16px',
+                }}>
+                  <div style={{ fontSize: 10.5, color: '#6f6a60', fontWeight: 500, letterSpacing: '.04em' }}>{label}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color, lineHeight: 1.3, marginTop: 4 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 2×2 chart grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2,1fr)',
+            gap: 14,
+          }}>
+            {/* 1 — Sensor + Anomaly overlay */}
+            <ChartCard
+              title="SENSOR vs ANOMALY SCORE"
+              subtitle="The detector reacting to real sensor signal"
+              right={
+                <select
+                  value={overlaySensor}
+                  onChange={e => setOverlaySensor(e.target.value)}
+                  style={{
+                    padding: '5px 8px', borderRadius: 7, border: '1px solid #333b45',
+                    background: '#1B2027', color: '#DFD0B8', fontSize: 11.5,
+                    colorScheme: 'dark', outline: 'none', cursor: 'pointer',
+                  }}
+                >
+                  {ANALOG_SENSORS.map(s => (
+                    <option key={s.key} value={s.key}>{s.label}</option>
+                  ))}
+                </select>
+              }
+            >
+              <SensorOverlayChart
+                data={inferenceEntries}
+                sensorKey={overlaySensor}
+                sensorLabel={ANALOG_SENSORS.find(s => s.key === overlaySensor)?.label || ''}
+              />
+            </ChartCard>
+
+            {/* 2 — RUL degradation curve */}
+            <ChartCard
+              title="REMAINING USEFUL LIFE"
+              subtitle="Predicted countdown to failure, with risk zones"
+            >
+              <RulCurveChart data={inferenceEntries} />
+            </ChartCard>
+
+            {/* 3 — Fault localization donut */}
+            <ChartCard
+              title="FAULT LOCALIZATION"
+              subtitle="Which component type the LSTM flagged"
+            >
+              <FaultDonutChart distribution={inferenceStats?.fault_distribution} />
+            </ChartCard>
+
+            {/* 4 — Known vs Novel */}
+            <ChartCard
+              title="KNOWN vs NOVEL"
+              subtitle="Classifier verdict — F3 (seen) vs F4 (novel)"
+            >
+              <KnownVsNovelChart
+                f3={statsF3?.verdict_distribution}
+                f4={statsF4?.verdict_distribution}
+              />
+            </ChartCard>
+          </div>
+        </div>
+
         {/* ── Table / states ── */}
         {loading ? (
           <div style={{
@@ -920,7 +1215,7 @@ export default function Reports() {
                 </thead>
                 <tbody>
                   {displayed.map(alert => {
-                    const scenario   = detectScenario(alert.predicted_failure)
+                    const scenario   = alertScenario(alert)
                     const isExpanded = expandedId === alert.id
                     return (
                       <React.Fragment key={alert.id}>

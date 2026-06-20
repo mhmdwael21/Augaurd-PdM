@@ -64,7 +64,6 @@ const PHASE = {
   NORMAL:  { bg: 'rgba(123,138,67,.14)', col: '#C6D196', bd: 'rgba(123,138,67,.4)' },
   DRIFT:   { bg: 'rgba(201,154,63,.16)', col: '#E4C281', bd: 'rgba(201,154,63,.42)' },
   ANOMALY: { bg: 'rgba(190,80,52,.16)',  col: '#E0987F', bd: 'rgba(190,80,52,.45)' },
-  FAILURE: { bg: 'rgba(190,80,52,.16)',  col: '#E0987F', bd: 'rgba(190,80,52,.45)' },
   WARMING: { bg: 'rgba(148,137,121,.13)', col: '#a59c8c', bd: 'rgba(148,137,121,.3)' },
 }
 const SEV = {
@@ -150,7 +149,7 @@ export default function Dashboard() {
   const score = ready ? snap.anomaly.score : 0
   const history = ready ? snap.anomaly.history : []
   const zone = scoreZone(score)
-  const isAnom = status === 'ANOMALY' || status === 'FAILURE'
+  const isAnom = status === 'ANOMALY'
   const progress = replay.scenario_len ? clamp((replay.cursor / replay.scenario_len) * 100, 0, 100) : 0
 
   // classifier badge

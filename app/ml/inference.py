@@ -34,8 +34,6 @@ IF_DISPLAY_HI = 0.05
 # State-machine hysteresis (Phase 3)
 LATCH_N = 3           # consecutive flagged windows to latch into ANOMALY
 RECOVER_N = 5         # consecutive sub-threshold windows to recover to NORMAL
-FAILURE_SCORE = 0.90  # score at/above this while anomalous -> FAILURE
-FAILURE_RUL_H = 12    # RUL below this while anomalous -> FAILURE
 
 # ── IF-score-driven alert severity (bands + persistence) ──────────────
 # Severity is a pure function of the normalized IF score. A score band only
@@ -155,26 +153,22 @@ class InferenceEngine:
         }
 
     def _advance_state(self, score, rul_block):
-        """Latching NORMAL/DRIFT/ANOMALY/FAILURE for the dashboard badge.
+        """Latching NORMAL/DRIFT/ANOMALY for the dashboard badge.
 
         Display only — alert firing is handled separately by ``_advance_alert``.
         """
-        failure = score >= FAILURE_SCORE or (
-            rul_block["available"] and rul_block["hours"] is not None
-            and rul_block["hours"] < FAILURE_RUL_H
-        )
         if self.state in ("NORMAL", "DRIFT"):
             if self.consec >= LATCH_N:
-                self.state = "FAILURE" if failure else "ANOMALY"
+                self.state = "ANOMALY"
                 self.episode_active = True
             else:
                 self.state = "DRIFT" if score >= 0.5 else "NORMAL"
-        else:  # ANOMALY or FAILURE
+        else:  # ANOMALY
             if self.below >= RECOVER_N:
                 self.state = "NORMAL"
                 self.episode_active = False
             else:
-                self.state = "FAILURE" if failure else "ANOMALY"
+                self.state = "ANOMALY"
         return self.state
 
     def _advance_alert(self, score):

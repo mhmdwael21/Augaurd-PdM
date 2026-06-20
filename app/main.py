@@ -10,6 +10,7 @@ from app.api.routes.anomaly import router as dashboard_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.dashboard import router as admin_panel_router
 from app.api.routes.hardware import router as hardware_router
+from app.api.routes.inference import router as inference_router
 from app.api.routes.notifications import router as notifications_router
 from app.api.routes.reports import router as reports_router
 from app.core.config import MODEL_VERSION, SERVICE_NAME
@@ -19,6 +20,7 @@ from app.core.database import Base, engine
 from app.models.user import User  # noqa: F401
 from app.models.alert import Alert  # noqa: F401
 from app.models.notification import Notification  # noqa: F401
+from app.models.inference_log import InferenceLog  # noqa: F401
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────
@@ -28,6 +30,13 @@ async def lifespan(app: FastAPI):
     """Startup / shutdown lifecycle for the application."""
     # Startup: create tables if they don't exist
     Base.metadata.create_all(bind=engine)
+    # create_all never ALTERs existing tables — add the new alerts.top_sensors
+    # column to the pre-existing table if it's missing (idempotent, Postgres).
+    from sqlalchemy import text
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS top_sensors JSON"))
+        conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS scenario VARCHAR(10)"))
+        conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS data_timestamp TIMESTAMP"))
     # Load ML models + start the background replay loop (model load cost paid here)
     from app.services import replay_service
     replay_service.start()
@@ -62,3 +71,4 @@ app.include_router(alerts_router)
 app.include_router(notifications_router)
 app.include_router(reports_router)
 app.include_router(hardware_router)
+app.include_router(inference_router)

@@ -103,6 +103,25 @@ export const setTriggerConfig  = (body)  =>
 export const clearHardwareBanner = ()    =>
   api('/hardware/trigger/banner/clear', { method: 'POST' })
 
+// Inference log
+export const getInferenceHistory = (params = {}) => {
+  const qs = new URLSearchParams()
+  if (params.from_date) qs.set('from_date', params.from_date)
+  if (params.to_date)   qs.set('to_date',   params.to_date)
+  if (params.status)    qs.set('status',     params.status)
+  if (params.scenario)  qs.set('scenario',   params.scenario)
+  if (params.limit)     qs.set('limit',      params.limit)
+  const q = qs.toString()
+  return api('/inference/history' + (q ? '?' + q : ''))
+}
+export const getInferenceStats = (params = {}) => {
+  const qs = new URLSearchParams()
+  if (params.scenario) qs.set('scenario', params.scenario)
+  const q = qs.toString()
+  return api('/inference/stats' + (q ? '?' + q : ''))
+}
+export const getInferenceEpisode = (alertId) => api('/inference/episode/' + alertId)
+
 // Notifications
 export const getNotifications = () =>
   DEMO ? mock.mockGetNotifications()

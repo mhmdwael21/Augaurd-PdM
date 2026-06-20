@@ -24,6 +24,7 @@ import copy
 import io
 import logging
 import threading
+from datetime import datetime
 
 import pandas as pd
 
@@ -32,6 +33,7 @@ from app.ml.preprocessing import (load_raw_csv, add_failure_label,
                                   clean_resample_segment)
 from app.ml.inference import InferenceEngine
 from app.services.decision_service import handle_snapshot
+from app.services.inference_log_service import write_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +43,11 @@ class ReplayController:
     IDLE_INTERVAL = 0.20   # poll interval while paused
     ERROR_BACKOFF = 0.50   # pause after a failed tick
     WARMUP = 360           # rows to fill the classifier window before serving
+    # inference_log sampling, measured in DATA time (speed-independent). During
+    # an episode we sample finely so the per-alert chart has a real curve;
+    # outside it a coarse baseline keeps the overall trend without flooding.
+    EPISODE_STRIDE_S  = 20     # data-seconds between samples while status != NORMAL
+    BASELINE_STRIDE_S = 120    # data-seconds between samples while NORMAL
     SCENARIOS = {
         "F4": ("2020-07-15 11:00", "2020-07-15 17:00"),  # novel failure
         "F3": ("2020-06-05 05:00", "2020-06-05 13:00"),  # known failure
@@ -60,6 +67,8 @@ class ReplayController:
         self._rows = {}          # scenario -> list[(ts, row)]  (immutable after load)
         self._warm = {}          # scenario -> pre-warmed template engine (immutable)
         self._loaded = False
+        self._last_log_data_ts = None  # data-timestamp of last inference_log write
+        self._last_log_status  = None  # status at last write (track transitions)
 
     # ── lifecycle ────────────────────────────────────────────────────
     def load(self):
@@ -123,6 +132,7 @@ class ReplayController:
                 with self._lock:
                     playing, speed = self._playing, self._speed
                     gen, eng = self._generation, self._engine
+                    scenario = self._scenario
                     if playing:
                         rows = self._rows[self._scenario]
                         ts, row = rows[self._cursor]
@@ -140,12 +150,45 @@ class ReplayController:
                     if publish:
                         self._latest = snap
                 if publish:
-                    handle_snapshot(snap)            # DB — outside the lock
+                    alert = handle_snapshot(snap, scenario)   # DB — outside the lock
+                    self._maybe_log(snap, scenario, alert)
 
                 self._stop.wait(max(0.01, self.BASE_INTERVAL / speed))
             except Exception:
                 logger.exception("replay tick failed")
                 self._stop.wait(self.ERROR_BACKOFF)
+
+    def _maybe_log(self, snap, scenario, alert):
+        """Persist a snapshot to inference_log on a DATA-time cadence.
+
+        Always logs an alert-firing tick (so every alert has a findable anchor)
+        and every status transition. Otherwise samples on a data-time stride —
+        fine inside an episode (dense curve for the per-alert chart), coarse
+        while NORMAL. Data-time keeps cadence identical at any replay speed.
+        """
+        snap_status = snap.get("status")
+        try:
+            data_ts = datetime.fromisoformat(snap["timestamp"])
+        except (KeyError, ValueError, TypeError):
+            data_ts = None
+
+        episode = snap_status not in (None, "NORMAL", "WARMING")
+        stride  = self.EPISODE_STRIDE_S if episode else self.BASELINE_STRIDE_S
+
+        due = True
+        if data_ts is not None and self._last_log_data_ts is not None:
+            delta = (data_ts - self._last_log_data_ts).total_seconds()
+            # >= stride advances the curve; a large jump means a loop wrap or
+            # scenario switch — always anchor the new pass.
+            due = delta >= stride or abs(delta) > 3600
+
+        if (alert is not None
+                or snap_status != self._last_log_status
+                or due):
+            write_snapshot(snap, scenario=scenario,
+                           alert_id=getattr(alert, "id", None))
+            self._last_log_data_ts = data_ts
+            self._last_log_status  = snap_status
 
     # ── controls ─────────────────────────────────────────────────────
     def control(self, playing=None, speed=None, scenario=None, reset=False):
@@ -230,7 +273,7 @@ def run_csv(content: bytes) -> dict:
         if s is None:
             continue
         peak = max(peak, s["anomaly"]["score"])
-        if s["status"] in ("ANOMALY", "FAILURE"):
+        if s["status"] == "ANOMALY":
             anomaly_windows += 1
         if s["detection"]["alert_event"]:
             alert_episodes += 1

@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, String, Text
+from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, JSON, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -51,6 +51,14 @@ class Alert(Base):
     assigned_to = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     anomaly_score = Column(Float, nullable=True)
     created_by = Column(String(100), nullable=False, default="system")
+    # LSTM localizer top-3 culprit sensors at fire time: [{"sensor","error"}, ...]
+    top_sensors = Column(JSON, nullable=True)
+    # Actual replay scenario active when the alert fired ("F3"/"F4") — the
+    # ground-truth label, NOT inferred from the classifier verdict text.
+    scenario = Column(String(10), nullable=True)
+    # Replay/data timestamp at fire time — used to window inference_log for the
+    # per-alert chart, so each alert (even loop duplicates) owns its own series.
+    data_timestamp = Column(DateTime, nullable=True)
 
     # Relationships
     assigned_user = relationship("User", foreign_keys=[assigned_to], lazy="joined")

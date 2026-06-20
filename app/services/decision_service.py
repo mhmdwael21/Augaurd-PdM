@@ -7,6 +7,7 @@ system user. Kept out of the engine so the engine stays DB-free / testable.
 """
 import logging
 import uuid
+from datetime import datetime
 
 from app.core.database import SessionLocal
 from app.models.alert import AlertSeverity
@@ -87,21 +88,32 @@ def build_alert_payload(snap) -> AlertCreate:
             anomaly_score=score,
         )
     action = snap["localization"]["action"] or "Investigate the flagged sensors and recent trend."
+    # Persist the localizer's top-3 culprit sensors so the per-alert chart can
+    # default to the actually-flagged sensor (rounded for compact storage).
+    top3 = [
+        {"sensor": p["sensor"], "error": round(float(p["error"]), 4)}
+        for p in snap["localization"].get("top3", [])
+    ] or None
     return AlertCreate(
         severity=severity,
         predicted_failure=_predicted_failure(snap),
         recommended_action=action,
         anomaly_score=score,
+        top_sensors=top3,
     )
 
 
-def handle_snapshot(snap):
+def handle_snapshot(snap, scenario=None):
     """If this snapshot fired a band escalation, persist alert + notification.
 
     The engine sets ``alert_event`` (with ``alert_severity``) when the IF score
     climbs into a new, higher band whose persistence gate is met — LOW/MEDIUM
     for sustained drift, HIGH/CRITICAL for confirmed anomalies. NORMAL and brief
     drifts never fire. Returns the created Alert (or None when there is no event).
+
+    ``scenario`` is the replay scenario active at fire time ("F3"/"F4") — the
+    ground-truth label, stored on the alert so the UI never has to guess it from
+    the classifier verdict text (verdict != scenario).
     """
     if not snap or not snap.get("detection", {}).get("alert_event"):
         return None
@@ -110,6 +122,11 @@ def handle_snapshot(snap):
     try:
         sys_id = ensure_system_user(db)
         payload = build_alert_payload(snap)
+        payload.scenario = scenario
+        try:
+            payload.data_timestamp = datetime.fromisoformat(snap["timestamp"])
+        except (KeyError, ValueError, TypeError):
+            payload.data_timestamp = None
         alert = create_alert(db, payload, sys_id)
         note = NotificationCreate(
             subject=f"{payload.severity.value.upper()}: {payload.predicted_failure}",

@@ -1,7 +1,7 @@
 """Pydantic schemas for the alerts module."""
 
 from datetime import datetime
-from typing import Optional
+from typing import Any, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -32,6 +32,15 @@ class AlertCreate(BaseModel):
     anomaly_score: Optional[float] = Field(
         None, ge=0.0, le=1.0, description="ML anomaly score (0-1)"
     )
+    top_sensors: Optional[List[Any]] = Field(
+        None, description="LSTM localizer top-3 culprit sensors at fire time"
+    )
+    scenario: Optional[str] = Field(
+        None, description="Replay scenario active at fire time (F3/F4)"
+    )
+    data_timestamp: Optional[datetime] = Field(
+        None, description="Replay/data timestamp at fire time (for chart windowing)"
+    )
 
 
 class AlertUpdate(BaseModel):
@@ -60,6 +69,9 @@ class AlertResponse(BaseModel):
     assigned_to: Optional[UUID] = None
     anomaly_score: Optional[float] = None
     created_by: str
+    top_sensors: Optional[List[Any]] = None
+    scenario: Optional[str] = None
+    data_timestamp: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -82,6 +94,9 @@ class AlertHistoryResponse(BaseModel):
     assigned_to_username: Optional[str] = None
     anomaly_score: Optional[float] = None
     created_by: str
+    top_sensors: Optional[List[Any]] = None
+    scenario: Optional[str] = None
+    data_timestamp: Optional[datetime] = None
 
     class Config:
         from_attributes = True

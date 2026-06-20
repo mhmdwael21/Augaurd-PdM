@@ -36,6 +36,9 @@ def _to_history(alert: Alert) -> AlertHistoryResponse:
         ),
         anomaly_score=alert.anomaly_score,
         created_by=alert.created_by,
+        top_sensors=alert.top_sensors,
+        scenario=alert.scenario,
+        data_timestamp=alert.data_timestamp,
     )
 
 

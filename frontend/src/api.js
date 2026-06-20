@@ -81,6 +81,16 @@ export const getWorkOrder          = (id)              => api('/work-orders/' + 
 export const createWorkOrder       = (body)            => api('/work-orders/', { method: 'POST', body: JSON.stringify(body) })
 export const updateWorkOrderStatus = (id, status)      => api(`/work-orders/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) })
 export const assignWorkOrder       = (id, assigned_to) => api(`/work-orders/${id}/assign`, { method: 'PUT', body: JSON.stringify({ assigned_to }) })
+export const completeWorkOrder     = (id, body)        => api(`/work-orders/${id}/complete`, { method: 'POST', body: JSON.stringify(body) })
+
+// Maintenance records
+export const getMaintenanceRecords = (params = {}) => {
+  const qs = new URLSearchParams()
+  if (params.equipment_id) qs.set('equipment_id', params.equipment_id)
+  const q = qs.toString()
+  return api('/maintenance-records/' + (q ? '?' + q : ''))
+}
+export const getMaintenanceStats = () => api('/maintenance-records/stats')
 
 // Alerts
 export const getAlerts = (params = {}) => {

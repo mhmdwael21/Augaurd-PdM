@@ -8,6 +8,7 @@ import AssetDetail from './pages/AssetDetail'
 import Hardware from './pages/Hardware'
 import Alerts from './pages/Alerts'
 import WorkOrders from './pages/WorkOrders'
+import Maintenance from './pages/Maintenance'
 import Notifications from './pages/Notifications'
 import Reports from './pages/Reports'
 import Users from './pages/Users'
@@ -38,6 +39,7 @@ function AppRoutes() {
       <Route path="/hardware" element={<RequireAuth><Hardware /></RequireAuth>} />
       <Route path="/alerts" element={<RequireAuth><Alerts /></RequireAuth>} />
       <Route path="/work-orders" element={<RequireAuth><WorkOrders /></RequireAuth>} />
+      <Route path="/maintenance" element={<RequireAuth><Maintenance /></RequireAuth>} />
       <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
       <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />
       <Route path="/users" element={<RequireAdmin><Users /></RequireAdmin>} />

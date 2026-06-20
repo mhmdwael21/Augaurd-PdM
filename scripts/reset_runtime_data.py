@@ -1,15 +1,15 @@
-"""Reset runtime data — clears alerts, notifications, and inference_log.
+"""Reset runtime data — clears the full operational slate.
 
-Wipes the operational data so the system starts clean with fully-stamped rows
-(equipment_id / failure_mode_id) going forward. Deletes in FK-safe order
-(notifications reference alerts).
+Wipes alerts, notifications, inference_log, work_orders, and maintenance_records
+so the system starts clean. The replay loop repopulates alerts/inference_log
+and auto-spawns fresh work orders; maintenance records build up as you complete
+work orders through the UI.
 
 KEEPS: users (incl. the auguard-ai system user), equipment, sensors,
 failure_modes — i.e. accounts and the seeded reference/registry data.
 
-Run once after restarting the backend with the stamping changes. The replay
-loop will immediately repopulate inference_log (and fire alerts) with the new
-asset-centric columns filled in.
+Deletion is in FK-safe order (children before parents):
+  maintenance_records -> work_orders, notifications -> alerts, work_orders -> alerts.
 """
 import sys
 from pathlib import Path
@@ -20,8 +20,10 @@ from sqlalchemy import text
 
 from app.core.database import engine
 
-# FK-safe order: notifications.alert_id -> alerts.id, so notifications first.
-TABLES = ["notifications", "inference_log", "alerts"]
+# FK-safe order: delete children before the rows they reference.
+#   maintenance_records.work_order_id -> work_orders
+#   notifications.alert_id / work_orders.alert_id -> alerts
+TABLES = ["maintenance_records", "notifications", "work_orders", "inference_log", "alerts"]
 
 with engine.begin() as conn:
     print("resetting runtime data:")
@@ -30,4 +32,4 @@ with engine.begin() as conn:
         conn.execute(text(f"DELETE FROM {t}"))
         print(f"  cleared {t:14} ({before} rows deleted)")
 
-print("done — users, equipment, sensors, failure_modes were kept.")
+print("done — users, equipment, sensors, failure_modes kept.")

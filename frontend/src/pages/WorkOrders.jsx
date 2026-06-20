@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getWorkOrders, getUsers, getEquipment, createWorkOrder, updateWorkOrderStatus, assignWorkOrder } from '../api'
+import { getWorkOrders, getUsers, getEquipment, createWorkOrder, updateWorkOrderStatus, assignWorkOrder, completeWorkOrder } from '../api'
 import Topbar from '../components/Topbar'
 import { severityStyle } from '../tokens'
 import { useResponsive } from '../hooks/useResponsive'
@@ -88,6 +88,14 @@ export default function WorkOrders() {
   const [newDesc, setNewDesc] = useState('')
   const [newPriority, setNewPriority] = useState('medium')
 
+  // Complete-with-maintenance-log modal
+  const [completeOpen, setCompleteOpen] = useState(false)
+  const [completeTarget, setCompleteTarget] = useState(null)
+  const [cAction, setCAction] = useState('')
+  const [cOutcome, setCOutcome] = useState('failure_confirmed')
+  const [cDowntime, setCDowntime] = useState('')
+  const [cNotes, setCNotes] = useState('')
+
   const load = useCallback(async () => {
     try {
       const [wo, us] = await Promise.all([getWorkOrders(), isAdmin ? getUsers() : Promise.resolve([])])
@@ -137,8 +145,31 @@ export default function WorkOrders() {
       setCreateOpen(false); setNewEquip(''); setNewTitle(''); setNewDesc(''); setNewPriority('medium')
     } catch (e) { alert(e.message) }
   }
+  function openComplete(id) {
+    setCompleteTarget(id); setCAction(''); setCOutcome('failure_confirmed'); setCDowntime(''); setCNotes(''); setCompleteOpen(true)
+  }
+  async function doComplete() {
+    if (!cAction) return
+    try {
+      await completeWorkOrder(completeTarget, {
+        action_taken: cAction,
+        outcome: cOutcome,
+        maintenance_type: 'corrective',
+        downtime_minutes: cDowntime ? parseInt(cDowntime, 10) : undefined,
+        notes: cNotes || undefined,
+      })
+      await load()
+      setCompleteOpen(false); setCompleteTarget(null)
+    } catch (e) { alert(e.message) }
+  }
 
   const prioOpts = ['low', 'medium', 'high', 'critical']
+  const outcomeOpts = [
+    ['failure_confirmed', 'Failure confirmed'],
+    ['no_fault_found', 'No fault found'],
+    ['partial', 'Partial'],
+    ['inconclusive', 'Inconclusive'],
+  ]
 
   return (
     <div style={{ minHeight: '100vh', background: '#1B2027', color: '#DFD0B8' }}>
@@ -221,8 +252,8 @@ export default function WorkOrders() {
                     </button>
                   )}
                   {o.status === 'in_progress' && (
-                    <button onClick={() => doStatus(o.id, 'completed')} style={{ padding: '8px 15px', borderRadius: 9, border: 'none', background: '#7b8a43', color: '#1B2027', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
-                      ✓ Mark Completed
+                    <button onClick={() => openComplete(o.id)} style={{ padding: '8px 15px', borderRadius: 9, border: 'none', background: '#7b8a43', color: '#1B2027', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
+                      ✓ Complete &amp; Log
                     </button>
                   )}
                   {isAdmin && (o.status === 'open' || o.status === 'in_progress') && (
@@ -318,6 +349,57 @@ export default function WorkOrders() {
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => setAssignOpen(false)} style={{ padding: '10px 18px', borderRadius: 9, border: '1px solid #393E46', background: 'transparent', color: '#948979', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
               <button onClick={doAssign} style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: '#DFD0B8', color: '#1B2027', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COMPLETE + LOG MAINTENANCE MODAL */}
+      {completeOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(0,0,0,.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setCompleteOpen(false)}>
+          <div className="anim-in" style={{ width: 'min(540px,100%)', background: '#262C35', border: '1px solid #393E46', borderRadius: 18, padding: '28px 30px', display: 'flex', flexDirection: 'column', gap: 18 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: '#DFD0B8' }}>Complete &amp; Log Maintenance</h2>
+                <p style={{ fontSize: 12.5, color: '#948979', marginTop: 3 }}>Records what was done + the outcome (feeds precision KPIs).</p>
+              </div>
+              <button onClick={() => setCompleteOpen(false)} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #393E46', background: 'transparent', color: '#948979', fontSize: 18, cursor: 'pointer' }}>×</button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: '#948979', textTransform: 'uppercase' }}>Action Taken *</label>
+                <textarea value={cAction} onChange={e => setCAction(e.target.value)} rows={3} placeholder="e.g. Sealed air leak at pneumatic valve seal." style={{ padding: '11px 13px', borderRadius: 9, border: '1px solid #393E46', background: '#1B2027', color: '#DFD0B8', fontSize: 13.5, resize: 'vertical' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: '#948979', textTransform: 'uppercase' }}>Outcome *</label>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {outcomeOpts.map(([val, lbl]) => {
+                    const active = cOutcome === val
+                    const isTP = val === 'failure_confirmed', isFP = val === 'no_fault_found'
+                    const col = isTP ? '#C6D196' : isFP ? '#E0987F' : '#cabfa6'
+                    return (
+                      <button key={val} onClick={() => setCOutcome(val)} style={{ padding: '7px 12px', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 12, border: `1px solid ${active ? col : '#333b45'}`, background: active ? 'rgba(223,208,184,.08)' : 'transparent', color: active ? col : '#948979' }}>
+                        {lbl}
+                      </button>
+                    )
+                  })}
+                </div>
+                <span style={{ fontSize: 11, color: '#6f6a60', lineHeight: 1.4 }}>“Failure confirmed” = the AI alert was a true positive; “No fault found” = false positive. This is the feedback signal.</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: '#948979', textTransform: 'uppercase' }}>Downtime (min)</label>
+                  <input value={cDowntime} onChange={e => setCDowntime(e.target.value)} type="number" min="0" placeholder="optional" style={{ padding: '11px 13px', borderRadius: 9, border: '1px solid #393E46', background: '#1B2027', color: '#DFD0B8', fontSize: 13.5 }} />
+                </div>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: '#948979', textTransform: 'uppercase' }}>Notes</label>
+                <textarea value={cNotes} onChange={e => setCNotes(e.target.value)} rows={2} placeholder="optional" style={{ padding: '11px 13px', borderRadius: 9, border: '1px solid #393E46', background: '#1B2027', color: '#DFD0B8', fontSize: 13.5, resize: 'vertical' }} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setCompleteOpen(false)} style={{ padding: '10px 18px', borderRadius: 9, border: '1px solid #393E46', background: 'transparent', color: '#948979', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={doComplete} style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: '#7b8a43', color: '#1B2027', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Complete Work Order</button>
             </div>
           </div>
         </div>

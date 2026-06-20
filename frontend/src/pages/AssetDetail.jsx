@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getEquipmentItem, getAlerts } from '../api'
+import { getEquipmentItem, getAlerts, getSensors } from '../api'
 import Topbar from '../components/Topbar'
 import { useResponsive } from '../hooks/useResponsive'
 import { C, severityStyle, statusStyle } from '../tokens'
@@ -23,6 +23,15 @@ function eqStatusStyle(status) {
     decommissioned: { bg: C.critBg, fg: C.critText, bd: C.critBd, dot: C.critSolid },
   }
   return m[status] || m.idle
+}
+
+function sensorStatusStyle(s) {
+  const m = {
+    online:  { bg: C.normalBg, fg: C.normalText, bd: C.normalBd, dot: C.normalDot },
+    faulty:  { bg: C.critBg, fg: C.critText, bd: C.critBd, dot: C.critSolid },
+    offline: { bg: 'rgba(148,137,121,.14)', fg: C.textMuted, bd: C.borderStrong, dot: C.textDim },
+  }
+  return m[s] || m.offline
 }
 
 function fmtDate(ts) {
@@ -48,13 +57,19 @@ export default function AssetDetail() {
   const { isMobile } = useResponsive()
   const [asset, setAsset] = useState(null)
   const [alerts, setAlerts] = useState([])
+  const [sensors, setSensors] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
   const load = useCallback(async () => {
     try {
-      const [eq, al] = await Promise.all([getEquipmentItem(assetId), getAlerts().catch(() => [])])
+      const [eq, al, sn] = await Promise.all([
+        getEquipmentItem(assetId),
+        getAlerts().catch(() => []),
+        getSensors(assetId).catch(() => []),
+      ])
       setAsset(eq)
+      setSensors(Array.isArray(sn) ? sn : [])
       setAlerts((Array.isArray(al) ? al : []).filter(a => String(a.equipment_id) === String(assetId)))
     } catch {
       setNotFound(true)
@@ -107,6 +122,56 @@ export default function AssetDetail() {
                 <Field label="Installed" value={asset.install_date ? fmtDate(asset.install_date).split(' ').slice(0, 3).join(' ') : '—'} />
                 <Field label="Registered" value={fmtDate(asset.created_at).split(' ').slice(0, 3).join(' ')} />
               </div>
+            </div>
+
+            {/* SENSOR REGISTRY FOR THIS ASSET */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                <h2 style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary, letterSpacing: '.01em' }}>Sensors</h2>
+                {sensors.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 11.5, color: C.textDim }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.normalDot }} />
+                      {sensors.filter(s => s.status === 'online').length} online
+                    </span>
+                    {sensors.some(s => s.status === 'faulty') && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: C.critSolid }} />
+                        {sensors.filter(s => s.status === 'faulty').length} faulty
+                      </span>
+                    )}
+                    <span>{sensors.length} channels</span>
+                  </div>
+                )}
+              </div>
+              {sensors.length === 0 ? (
+                <div style={{ padding: 32, textAlign: 'center', background: C.bgSurface, border: `1px dashed ${C.borderStrong}`, borderRadius: 14, color: C.textDim, fontSize: 13 }}>
+                  No sensors registered for this asset.
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+                  {sensors.map(s => {
+                    const ss = sensorStatusStyle(s.status)
+                    return (
+                      <div key={s.id} style={{ background: C.bgSurface, border: `1px solid ${s.status === 'faulty' ? C.critBd : C.borderStrong}`, borderRadius: 12, padding: '13px 14px', display: 'flex', flexDirection: 'column', gap: 9 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                          <span style={{ fontSize: 13.5, fontWeight: 700, color: C.textPrimary, fontFamily: 'monospace', letterSpacing: '.01em' }}>{s.channel_name}</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 9.5, fontWeight: 700, letterSpacing: '.07em', padding: '3px 8px', borderRadius: 999, background: ss.bg, color: ss.fg, border: `1px solid ${ss.bd}`, textTransform: 'uppercase' }}>
+                            <span style={{ width: 5, height: 5, borderRadius: '50%', background: ss.dot }} />
+                            {s.status}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.3 }}>{s.display_name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8, borderTop: `1px solid ${C.borderSubtle}` }}>
+                          <span style={{ fontSize: 10.5, color: C.textDim, letterSpacing: '.03em' }}>
+                            {s.sensor_type}{s.unit ? ` · ${s.unit}` : ''}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             {/* ALERTS FOR THIS ASSET */}

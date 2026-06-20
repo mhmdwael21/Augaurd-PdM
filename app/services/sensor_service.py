@@ -43,10 +43,10 @@ _SENSOR_META = {
     "Caudal_impulses": ("Flow Impulses", ""),
 }
 
-# Physical ESP32 bench sensors (mirrors hardware_ingest.py LIVE_MAP + BROKEN_CHANNEL).
-# TP2/Reservoirs stream live; TP3 (after_filter) is wired but broken.
-_HW_CONNECTED = {"TP2", "Reservoirs", "TP3"}
-_BROKEN_CHANNEL = "TP3"
+# APU-01 is the dataset-monitored compressor — all 15 channels are healthy data
+# channels (status=online). The ESP32 bench prototype's live sensors and its
+# broken TP3 gauge are a SEPARATE system, represented only on the Prototype page;
+# we do not conflate that hardware status onto the monitored asset's registry.
 
 
 # ── CRUD ─────────────────────────────────────────────────────────────
@@ -111,7 +111,6 @@ def ensure_seed_sensors(db: Session) -> None:
             continue
         display, unit = _SENSOR_META.get(ch, (ch, None))
         is_analog = ch in ANALOG_COLS
-        sensor_status = SensorStatus.FAULTY if ch == _BROKEN_CHANNEL else SensorStatus.ONLINE
         db.add(Sensor(
             equipment_id=APU_01_ID,
             channel_name=ch,
@@ -121,7 +120,7 @@ def ensure_seed_sensors(db: Session) -> None:
             # digital channels are binary 0/1; analog spec range left unknown (null)
             min_range=None if is_analog else 0.0,
             max_range=None if is_analog else 1.0,
-            is_hardware_connected=ch in _HW_CONNECTED,
-            status=sensor_status,
+            is_hardware_connected=False,  # hardware linkage lives on the Prototype page
+            status=SensorStatus.ONLINE,
         ))
     db.commit()

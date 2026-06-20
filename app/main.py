@@ -14,6 +14,7 @@ from app.api.routes.sensors import router as sensors_router
 from app.api.routes.failure_modes import router as failure_modes_router
 from app.api.routes.work_orders import router as work_orders_router
 from app.api.routes.maintenance_records import router as maintenance_records_router
+from app.api.routes.spare_parts import router as spare_parts_router
 from app.api.routes.hardware import router as hardware_router
 from app.api.routes.inference import router as inference_router
 from app.api.routes.notifications import router as notifications_router
@@ -31,6 +32,8 @@ from app.models.sensor import Sensor  # noqa: F401
 from app.models.failure_mode import FailureMode  # noqa: F401
 from app.models.work_order import WorkOrder  # noqa: F401
 from app.models.maintenance_record import MaintenanceRecord  # noqa: F401
+from app.models.spare_part import SparePart  # noqa: F401
+from app.models.maintenance_part import MaintenancePart  # noqa: F401
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────
@@ -69,11 +72,13 @@ async def lifespan(app: FastAPI):
     from app.services.equipment_service import ensure_seed_equipment
     from app.services.sensor_service import ensure_seed_sensors
     from app.services.failure_mode_service import ensure_seed_failure_modes
+    from app.services.spare_part_service import ensure_seed_spare_parts
     db = SessionLocal()
     try:
         ensure_seed_equipment(db)
         ensure_seed_sensors(db)
         ensure_seed_failure_modes(db)
+        ensure_seed_spare_parts(db)
     finally:
         db.close()
     # Load ML models + start the background replay loop (model load cost paid here)
@@ -111,6 +116,7 @@ app.include_router(sensors_router)
 app.include_router(failure_modes_router)
 app.include_router(work_orders_router)
 app.include_router(maintenance_records_router)
+app.include_router(spare_parts_router)
 app.include_router(alerts_router)
 app.include_router(notifications_router)
 app.include_router(reports_router)

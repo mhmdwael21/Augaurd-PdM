@@ -21,9 +21,11 @@ from sqlalchemy import text
 from app.core.database import engine
 
 # FK-safe order: delete children before the rows they reference.
+#   maintenance_parts.maintenance_record_id -> maintenance_records
 #   maintenance_records.work_order_id -> work_orders
 #   notifications.alert_id / work_orders.alert_id -> alerts
-TABLES = ["maintenance_records", "notifications", "work_orders", "inference_log", "alerts"]
+# spare_parts is seeded reference data and is kept.
+TABLES = ["maintenance_parts", "maintenance_records", "notifications", "work_orders", "inference_log", "alerts"]
 
 with engine.begin() as conn:
     print("resetting runtime data:")

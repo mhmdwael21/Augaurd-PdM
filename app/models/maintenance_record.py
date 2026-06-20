@@ -53,6 +53,8 @@ class MaintenanceRecord(Base):
     notes = Column(Text, nullable=True)
 
     performer = relationship("User", foreign_keys=[performed_by], lazy="joined")
+    # Parts consumed (Phase 4). Additive relationship — no column change.
+    parts = relationship("MaintenancePart", lazy="selectin")
 
     def __repr__(self) -> str:
         out = self.outcome.value if self.outcome else "—"

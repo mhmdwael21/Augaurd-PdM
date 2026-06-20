@@ -1,12 +1,21 @@
 """Pydantic schemas for the maintenance_records module."""
 
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 from app.models.maintenance_record import MaintenanceOutcome, MaintenanceType
+from app.schemas.spare_part_schema import PartUsage
+
+
+class PartLine(BaseModel):
+    """A part consumed, as shown on a maintenance record."""
+
+    part_name: str
+    part_number: str
+    quantity_used: int
 
 
 # ── Request Schemas ──────────────────────────────────────────────────
@@ -34,6 +43,7 @@ class WorkOrderComplete(BaseModel):
     downtime_minutes: Optional[int] = Field(None, ge=0, description="Asset downtime (minutes)")
     labor_cost: Optional[float] = Field(None, ge=0, description="Labor cost")
     notes: Optional[str] = Field(None, description="Free-text notes")
+    parts_used: Optional[List[PartUsage]] = Field(None, description="Spare parts consumed")
 
 
 # ── Response Schemas ─────────────────────────────────────────────────
@@ -54,6 +64,7 @@ class MaintenanceRecordResponse(BaseModel):
     downtime_minutes: Optional[int] = None
     labor_cost: Optional[float] = None
     notes: Optional[str] = None
+    parts: List[PartLine] = []
 
     class Config:
         from_attributes = True

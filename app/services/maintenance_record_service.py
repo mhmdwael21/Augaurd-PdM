@@ -24,8 +24,10 @@ from app.schemas.maintenance_record_schema import (
     MaintenanceRecordCreate,
     MaintenanceRecordResponse,
     MaintenanceStatsResponse,
+    PartLine,
     WorkOrderComplete,
 )
+from app.services.spare_part_service import consume_parts
 
 
 # ── Response mapper ──────────────────────────────────────────────────
@@ -45,6 +47,14 @@ def to_response(rec: MaintenanceRecord) -> MaintenanceRecordResponse:
         downtime_minutes=rec.downtime_minutes,
         labor_cost=rec.labor_cost,
         notes=rec.notes,
+        parts=[
+            PartLine(
+                part_name=mp.spare_part.part_name,
+                part_number=mp.spare_part.part_number,
+                quantity_used=mp.quantity_used,
+            )
+            for mp in (rec.parts or []) if mp.spare_part is not None
+        ],
     )
 
 
@@ -131,6 +141,10 @@ def complete_work_order_with_record(
     wo.status = WorkOrderStatus.COMPLETED
     wo.completed_at = now
     db.add(rec)
+    # Parts consumed: record usage + decrement stock in the SAME transaction.
+    if payload.parts_used:
+        db.flush()  # assign rec.id before linking parts
+        consume_parts(db, rec.id, payload.parts_used)
     db.commit()
     db.refresh(rec)
     return rec

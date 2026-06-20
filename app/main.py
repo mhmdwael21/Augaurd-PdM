@@ -10,6 +10,7 @@ from app.api.routes.anomaly import router as dashboard_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.dashboard import router as admin_panel_router
 from app.api.routes.equipment import router as equipment_router
+from app.api.routes.sensors import router as sensors_router
 from app.api.routes.hardware import router as hardware_router
 from app.api.routes.inference import router as inference_router
 from app.api.routes.notifications import router as notifications_router
@@ -23,6 +24,7 @@ from app.models.alert import Alert  # noqa: F401
 from app.models.notification import Notification  # noqa: F401
 from app.models.inference_log import InferenceLog  # noqa: F401
 from app.models.equipment import Equipment  # noqa: F401
+from app.models.sensor import Sensor  # noqa: F401
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────
@@ -39,12 +41,15 @@ async def lifespan(app: FastAPI):
         conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS top_sensors JSON"))
         conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS scenario VARCHAR(10)"))
         conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS data_timestamp TIMESTAMP"))
-    # Seed the demo fleet (APU-01 live + APU-02/03 idle) — idempotent.
+    # Seed the demo fleet + the 15 sensor channels — idempotent.
+    # Equipment first: sensors FK the asset.
     from app.core.database import SessionLocal
     from app.services.equipment_service import ensure_seed_equipment
+    from app.services.sensor_service import ensure_seed_sensors
     db = SessionLocal()
     try:
         ensure_seed_equipment(db)
+        ensure_seed_sensors(db)
     finally:
         db.close()
     # Load ML models + start the background replay loop (model load cost paid here)
@@ -78,6 +83,7 @@ app.include_router(auth_router)
 app.include_router(admin_panel_router)
 app.include_router(dashboard_router)
 app.include_router(equipment_router)
+app.include_router(sensors_router)
 app.include_router(alerts_router)
 app.include_router(notifications_router)
 app.include_router(reports_router)

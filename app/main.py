@@ -12,6 +12,7 @@ from app.api.routes.dashboard import router as admin_panel_router
 from app.api.routes.equipment import router as equipment_router
 from app.api.routes.sensors import router as sensors_router
 from app.api.routes.failure_modes import router as failure_modes_router
+from app.api.routes.work_orders import router as work_orders_router
 from app.api.routes.hardware import router as hardware_router
 from app.api.routes.inference import router as inference_router
 from app.api.routes.notifications import router as notifications_router
@@ -27,6 +28,7 @@ from app.models.inference_log import InferenceLog  # noqa: F401
 from app.models.equipment import Equipment, APU_01_ID  # noqa: F401
 from app.models.sensor import Sensor  # noqa: F401
 from app.models.failure_mode import FailureMode  # noqa: F401
+from app.models.work_order import WorkOrder  # noqa: F401
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────
@@ -105,6 +107,7 @@ app.include_router(dashboard_router)
 app.include_router(equipment_router)
 app.include_router(sensors_router)
 app.include_router(failure_modes_router)
+app.include_router(work_orders_router)
 app.include_router(alerts_router)
 app.include_router(notifications_router)
 app.include_router(reports_router)

@@ -19,6 +19,7 @@ from app.schemas.notification_schema import NotificationCreate
 from app.services.alert_service import create_alert
 from app.services.failure_mode_service import get_failure_mode_by_fault_type
 from app.services.notification_service import create_notification
+from app.services.work_order_service import spawn_work_order_for_alert
 from app.utils.security import hash_password
 
 logger = logging.getLogger(__name__)
@@ -148,6 +149,14 @@ def handle_snapshot(snap, scenario=None):
             alert_id=alert.id,
         )
         create_notification(db, note, sys_id)
+        # Auto-spawn a work order for confirmed anomalies (HIGH/CRITICAL only,
+        # Decision E). Isolated so a work-order failure can never break the
+        # alert/notification flow that already succeeded above.
+        if payload.severity in (AlertSeverity.HIGH, AlertSeverity.CRITICAL):
+            try:
+                spawn_work_order_for_alert(db, alert, sys_id)
+            except Exception:
+                logger.exception("work-order auto-spawn failed for alert %s", alert.id)
         rul = snap["rul"]
         logger.info(
             "AI alert %s created [%s] %s (score=%.3f, rul=%s, verdict=%s)",

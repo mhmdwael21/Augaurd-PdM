@@ -11,6 +11,8 @@
 |------|----------------|
 | 2026-06-19 | Initial context document created from full codebase exploration |
 | 2026-06-19 | Added ESP32 hardware integration (Track A pipeline demo + Track B physical trigger) — see Section 21 |
+| 2026-06-20 | Alert severity rework (IF-score bands), FAILURE state removed, inference_log model added — see Section 22 |
+| 2026-06-21 | Phase 1 of data-model expansion: asset-centric layer (equipment, sensors, FMEA failure_modes) + alert/log stamping + Fleet/Asset-Detail UI, FMEA alert cards, per-alert asset chips — see Section 23 |
 
 ---
 
@@ -629,6 +631,10 @@ Mohamed Wael (primary dev), Eman Mousa, Eman Hussien, Hana Gohar, Fatema Salah, 
 > Update this section each session with what was done and what remains.
 
 - [x] ESP32 hardware integration — backend + frontend done, route/service smoke-tested (Section 21)
+- [x] Data-model expansion **Phase 1** — equipment + sensors + failure_modes tables, alert/log stamping, Fleet/Asset-Detail UI, FMEA cards, asset chips (Section 23)
+- [ ] Data-model expansion **Phase 2** — `work_orders` (auto-spawn on HIGH/CRITICAL alerts) — NEXT
+- [ ] Data-model expansion **Phase 3** — `maintenance_records` (+ outcome feedback / KPIs)
+- [ ] Data-model expansion **Phase 4** — `spare_parts` + `maintenance_parts` (inventory + low-stock)
 - [ ] End-to-end test with the real board on the bench (reflash sketch first — new URL + device key)
 - [ ] Tune `HW_TRIGGER_DELTA_KPA` / `HW_TRIGGER_WINDOW_S` against real pressure-drop behaviour
 
@@ -711,4 +717,125 @@ Router registered in `app/main.py`.
 
 ---
 
-*Last updated: 2026-06-19*
+## 22. Session 2026-06-20 Changes
+
+### Alert severity rework (IF-score bands)
+Severity is now a pure function of the normalized IF score. The old RUL-primary `_severity()` function is gone.
+
+| Band | Score range | Severity | Persistence gate |
+|------|-------------|----------|-----------------|
+| 1 | 0.51 – 0.55 | LOW | 30 consecutive readings (~5 min) sustained in drift band |
+| 2 | 0.56 – 0.64 | MEDIUM | same as LOW (or episode already has a lower alert) |
+| 3 | 0.65 – 0.75 | HIGH | LATCH_N (3) consecutive anomalous windows |
+| 4 | ≥ 0.76 | CRITICAL | same as HIGH |
+
+**Escalation trail:** one alert per band per episode (never downgrades, never re-fires same band). Hysteresis re-arm: score < 0.45 for 5 readings resets `max_band` → fresh trail.
+
+**Key constants** (`app/ml/inference.py`):
+```python
+DRIFT_FLOOR = 0.51; DRIFT_SUSTAIN_N = 30; REARM_LEVEL = 0.45; REARM_N = 5
+BAND_EDGES = [(4, 0.76), (3, 0.65), (2, 0.56), (1, 0.51)]
+BAND_SEVERITY = {1: "low", 2: "medium", 3: "high", 4: "critical"}
+```
+
+**Engine state added:** `max_band`, `drift_run`, `calm` — all on `InferenceEngine`.
+
+**Decision service** (`app/services/decision_service.py`): reads `snap["detection"]["alert_severity"]` directly. LOW/MEDIUM get generic "Sustained drift detected" text; HIGH/CRITICAL get full localization + RUL text.
+
+### FAILURE state removed
+State machine now only emits `NORMAL | DRIFT | ANOMALY`. `FAILURE_SCORE` and `FAILURE_RUL_H` constants removed from `inference.py`. Dashboard badge, PHASE map, and replay CSV counter all updated.
+
+### Toast improvements
+- Title by severity: "Drift detected" (low/medium), "Anomaly detected" (high), "Critical anomaly detected" (critical)
+- Color by severity: yellow `#E8C24A` / orange `#E8923C` / light-red `#E8675A` / dark-red `#C0392B`
+- `Toast.jsx` accepts `titleColor` prop (applied to icon + title span)
+
+### Snapshot contract update
+`detection` block now includes `"alert_severity": str | null` alongside `"alert_event": bool`.
+
+### inference_log data model (fully implemented, pending first backend run)
+New DB table `inference_log` — one row per snapshot written on a data-time cadence.
+
+**Table:** `app/models/inference_log.py`
+- `(timestamp, scenario)` unique constraint — dedup across replay loops
+- 7 analog channel columns (tp2, tp3, h1, dv_pressure, reservoirs, oil_temperature, motor_current)
+- `alert_id` FK stamped via `COALESCE` upsert when an alert fires at that timestamp
+
+**Service:** `app/services/inference_log_service.py` — `write_snapshot(snap, scenario, alert_id=None)`
+
+**Routes** (`app/api/routes/inference.py`, prefix `/inference`):
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /inference/history` | Paginated log with filters (from_date, to_date, status, scenario, limit) |
+| `GET /inference/episode/{alert_id}` | ±80 min window around an alert's data-timestamp |
+| `GET /inference/stats` | Aggregate counts + distributions |
+
+**Alert model additions** (`app/models/alert.py`):
+- `top_sensors` (JSON) — LSTM top-3 at fire time
+- `scenario` (VARCHAR 10) — "F3"/"F4"
+- `data_timestamp` (TIMESTAMP) — replay data-time at fire time (used to anchor episode window)
+
+These three columns are `ADD COLUMN IF NOT EXISTS` in `main.py` lifespan — safe to run against the existing table.
+
+**Table creation:** `Base.metadata.create_all()` in lifespan creates `inference_log` on first startup after this commit.
+
+**Frontend wiring:**
+- `api.js` exports `getInferenceHistory`, `getInferenceStats`, `getInferenceEpisode`
+- `Reports.jsx` uses all three: episode timeline chart (±80 min), sensor overlay, RUL curve, fault donut, stats summary row
+- `ReportCharts.jsx` — new component with `SensorOverlayChart`, `RulCurveChart`, `FaultDonutChart`
+
+### Files changed (commit 1f6fc2e)
+Modified: `app/api/routes/reports.py`, `app/main.py`, `app/ml/inference.py`, `app/models/alert.py`, `app/schemas/alert_schema.py`, `app/services/alert_service.py`, `app/services/decision_service.py`, `app/services/replay_service.py`, `frontend/src/api.js`, `frontend/src/pages/Dashboard.jsx`, `frontend/src/pages/Reports.jsx`
+New: `app/api/routes/inference.py`, `app/models/inference_log.py`, `app/schemas/inference_log_schema.py`, `app/services/inference_log_service.py`, `frontend/src/components/ReportCharts.jsx`
+
+---
+
+## 23. Data-Model Expansion — Phase 1 (Asset-Centric Layer)
+
+Turns AuGuard from an alert-management app into an **asset-centric PdM system**.
+Design docs: `planning/DATA_MODEL_EXPANSION_PLAN.md` + `planning/DATA_MODEL_REFERENCE.md`.
+Locked decisions A–H recorded there. **Guardrail:** ML pipeline / `FEATURE_COLS`
+untouched; all changes additive; new metadata tables are read-only enrichment.
+
+### New tables
+| Table | Purpose | Seed |
+|-------|---------|------|
+| `equipment` | Asset registry (the monitored APUs) | APU-01 active + APU-02/03 idle (fixed UUIDs in `app/models/equipment.py`) |
+| `sensors` | 15 channels as first-class rows (display name, unit, type, status) | 15 rows on APU-01, all `online`, no HW flags (hardware story stays on Prototype page) |
+| `failure_modes` | FMEA catalog (category, component, symptoms, action) | 4 rows = the 4 localizer fault categories; actions migrated from `ACTION_MAP` |
+
+### New columns (additive, nullable, `ADD COLUMN IF NOT EXISTS` + backfill)
+- `alerts.equipment_id`, `alerts.failure_mode_id`
+- `inference_log.equipment_id`
+
+### Stamping (decision/log services — engine stays DB-free, Decision A)
+- `decision_service.handle_snapshot`: every alert → `equipment_id = APU-01`;
+  `failure_mode_id` resolved from the localizer `fault_type` via
+  `failure_mode_service.get_failure_mode_by_fault_type` (None for drift).
+- `inference_log_service.write_snapshot`: every row → `equipment_id = APU-01`.
+
+### API (RBAC per Decision G: reads any auth user, writes admin)
+`/equipment`, `/sensors` (`?equipment_id=`), `/failure-modes` — all GET list/detail + POST.
+
+### Frontend
+- **Fleet** (`/fleet`) — asset grid; **Asset Detail** (`/fleet/:assetId`) — header +
+  sensor registry + that asset's alerts. New `Fleet` nav tab.
+- **FMEA card** on the Alerts expanded detail (matched failure mode: category,
+  name, component, symptoms).
+- **Asset chip** (APU-01) on every alert: Alerts list, Dashboard feed, Reports table (ASSET column).
+
+### Key files
+New backend: `app/models/{equipment,sensor,failure_mode}.py`,
+`app/schemas/{equipment,sensor,failure_mode}_schema.py`,
+`app/services/{equipment,sensor,failure_mode}_service.py`,
+`app/api/routes/{equipment,sensors,failure_modes}.py`,
+`scripts/{seed_equipment,seed_sensors,seed_failure_modes,reset_runtime_data}.py`.
+New frontend: `frontend/src/pages/{Fleet,AssetDetail}.jsx`.
+Commits: `b610a8e` → `d48a47b` (8 commits, pushed to `main`).
+
+**Utility:** `scripts/reset_runtime_data.py` wipes alerts/notifications/inference_log
+(keeps users/equipment/sensors/failure_modes) for a clean, fully-stamped start.
+
+---
+
+*Last updated: 2026-06-21*

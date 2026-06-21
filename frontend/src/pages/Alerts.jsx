@@ -71,6 +71,7 @@ function StatCard({ label, icon, count, numColor, barColor, barW, highlight }) {
 export default function Alerts() {
   const { role, username } = useAuth()
   const isAdmin = role === 'admin'
+  const isTech = role === 'technician'
   const { isMobile } = useResponsive()
 
   const [alerts, setAlerts] = useState([])
@@ -84,6 +85,7 @@ export default function Alerts() {
   const [assignOpen, setAssignOpen] = useState(false)
   const [assignTargetId, setAssignTargetId] = useState(null)
   const [assignUserId, setAssignUserId] = useState(null)
+  const [assignError, setAssignError] = useState(null)
   const [newFailure, setNewFailure] = useState('')
   const [newAction, setNewAction] = useState('')
   const [newSev, setNewSev] = useState('medium')
@@ -139,8 +141,17 @@ export default function Alerts() {
   }
   async function doAssign() {
     if (!assignUserId) return
-    try { await assignAlert(assignTargetId, assignUserId); await load() } catch {}
-    setAssignOpen(false); setAssignTargetId(null); setAssignUserId(null)
+    setAssignError(null)
+    try {
+      await assignAlert(assignTargetId, assignUserId)
+      await load()
+      setAssignOpen(false); setAssignTargetId(null); setAssignUserId(null)
+    } catch (e) {
+      // Surface the backend reason (e.g. role not assignable) instead of failing silently.
+      let msg = e?.message || 'Assignment failed'
+      try { msg = JSON.parse(msg).detail || msg } catch {}
+      setAssignError(msg)
+    }
   }
   async function doCreate() {
     if (!newFailure || !newAction) return
@@ -293,12 +304,12 @@ export default function Alerts() {
                         <span style={{ fontSize: 13, color: '#cabfa6', lineHeight: 1.5 }}>{a.recommended_action}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                        {!isAdmin && a.status === 'new' && (
+                        {isTech && a.status === 'new' && (
                           <button onClick={() => doStatus(a.id, 'acknowledged')} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(217,169,74,.55)', background: 'rgba(217,169,74,.1)', color: '#E4C281', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
                             Acknowledge
                           </button>
                         )}
-                        {!isAdmin && a.status === 'acknowledged' && (
+                        {isTech && a.status === 'acknowledged' && (
                           <button onClick={() => doStatus(a.id, 'resolved')} style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: '#7b8a43', color: '#1B2027', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
                             Mark Resolved
                           </button>
@@ -309,7 +320,7 @@ export default function Alerts() {
                           </button>
                         )}
                         {isAdmin && !a.assigned_to && a.status !== 'resolved' && (
-                          <button onClick={() => { setAssignTargetId(a.id); setAssignOpen(true) }} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid #393E46', background: 'transparent', color: '#948979', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
+                          <button onClick={() => { setAssignTargetId(a.id); setAssignError(null); setAssignUserId(null); setAssignOpen(true) }} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid #393E46', background: 'transparent', color: '#948979', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
                             Assign →
                           </button>
                         )}
@@ -456,7 +467,7 @@ export default function Alerts() {
             <p style={{ fontSize: 12.5, color: '#948979', marginTop: -10 }}>PUT /alerts/{'{id}'}/assign — Admin only</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: '#948979', textTransform: 'uppercase' }}>Select User</span>
-              {users.filter(u => u.role !== 'admin').map(u => (
+              {users.filter(u => u.role === 'technician').map(u => (
                 <button key={u.id} onClick={() => setAssignUserId(u.id)} style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '12px 14px', borderRadius: 10,
@@ -471,6 +482,9 @@ export default function Alerts() {
                 </button>
               ))}
             </div>
+            {assignError && (
+              <p style={{ fontSize: 12.5, color: '#CB5B3C', background: 'rgba(203,91,60,.12)', border: '1px solid rgba(203,91,60,.4)', borderRadius: 8, padding: '8px 12px' }}>{assignError}</p>
+            )}
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button onClick={() => setAssignOpen(false)} style={{ padding: '10px 18px', borderRadius: 9, border: '1px solid #393E46', background: 'transparent', color: '#948979', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Cancel</button>
               <button onClick={doAssign} style={{ padding: '10px 20px', borderRadius: 9, border: 'none', background: '#DFD0B8', color: '#1B2027', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Confirm Assignment</button>

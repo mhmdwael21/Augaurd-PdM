@@ -74,8 +74,9 @@ async def get_detail(
     current_user: User = Depends(get_current_user),
 ):
     wo = get_work_order(db, wo_id)
-    # Non-admins may only view their own work orders.
-    if current_user.role != UserRole.ADMIN and wo.assigned_to != current_user.id:
+    # Technicians may only view their own assigned work orders; admin + operator
+    # (read-only monitor) may view any.
+    if current_user.role == UserRole.TECHNICIAN and wo.assigned_to != current_user.id:
         from fastapi import HTTPException, status as http_status
         raise HTTPException(status_code=http_status.HTTP_403_FORBIDDEN, detail="You can only view work orders assigned to you")
     return to_response(wo)

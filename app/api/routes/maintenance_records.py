@@ -1,9 +1,9 @@
 """Maintenance-records API routes.
 
-Reads are role-scoped (admin all; tech/operator their own). Any authenticated
-user who performs work can log a standalone record. KPIs (precision, MTTR) via
-``/stats``. The atomic "complete work order + log" lives on the work-orders
-router (`POST /work-orders/{id}/complete`).
+Reads are role-scoped (admin all; technician their own). Logging a record is
+restricted to technician/admin (operators are read-only monitors). KPIs
+(precision, MTTR) via ``/stats``. The atomic "complete work order + log" lives on
+the work-orders router (`POST /work-orders/{id}/complete`).
 """
 
 from typing import List, Optional
@@ -27,18 +27,18 @@ from app.services.maintenance_record_service import (
     maintenance_stats,
     to_response,
 )
-from app.utils.dependencies import get_current_user
+from app.utils.dependencies import get_current_user, require_role
 
 router = APIRouter(prefix="/maintenance-records", tags=["Maintenance Records"])
 
 
-# ── POST / ── Log a standalone record (any authenticated user) ──────
+# ── POST / ── Log a standalone record (technician or admin) ─────────
 
 @router.post("/", response_model=MaintenanceRecordResponse, status_code=201, summary="Log a maintenance record")
 async def create(
     payload: MaintenanceRecordCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role(UserRole.TECHNICIAN, UserRole.ADMIN)),
 ):
     return to_response(create_maintenance_record(db, payload, current_user.id))
 
@@ -74,6 +74,8 @@ async def get_detail(
     current_user: User = Depends(get_current_user),
 ):
     rec = get_maintenance_record(db, record_id)
-    if current_user.role != UserRole.ADMIN and rec.performed_by != current_user.id:
+    # Technicians may only view records they performed; admin + operator
+    # (read-only monitor) may view any.
+    if current_user.role == UserRole.TECHNICIAN and rec.performed_by != current_user.id:
         raise HTTPException(status_code=http_status.HTTP_403_FORBIDDEN, detail="You can only view your own records")
     return to_response(rec)

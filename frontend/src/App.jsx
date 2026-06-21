@@ -28,6 +28,16 @@ function RequireAdmin({ children }) {
   return children
 }
 
+// Work orders are maintenance-staff territory — operators (read-only monitors)
+// have no access to the page; they're redirected to the dashboard.
+function RequireStaff({ children }) {
+  const { token, role } = useAuth()
+  const location = useLocation()
+  if (!token) return <Navigate to="/auth" state={{ from: location }} replace />
+  if (role === 'operator') return <Navigate to="/dashboard" replace />
+  return children
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -38,7 +48,7 @@ function AppRoutes() {
       <Route path="/fleet/:assetId" element={<RequireAuth><AssetDetail /></RequireAuth>} />
       <Route path="/hardware" element={<RequireAuth><Hardware /></RequireAuth>} />
       <Route path="/alerts" element={<RequireAuth><Alerts /></RequireAuth>} />
-      <Route path="/work-orders" element={<RequireAuth><WorkOrders /></RequireAuth>} />
+      <Route path="/work-orders" element={<RequireStaff><WorkOrders /></RequireStaff>} />
       <Route path="/maintenance" element={<RequireAuth><Maintenance /></RequireAuth>} />
       <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
       <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />

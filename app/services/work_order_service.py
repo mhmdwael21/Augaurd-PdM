@@ -65,9 +65,10 @@ def list_work_orders(
     status_filter: Optional[WorkOrderStatus] = None,
     equipment_id: Optional[UUID] = None,
 ) -> List[WorkOrder]:
-    """Role-aware list: admin sees all; technician/operator see only their own."""
+    """Role-aware list: admin + operator see all (operator is a read-only
+    monitor); technician sees only their own assigned queue."""
     query = db.query(WorkOrder)
-    if user.role != UserRole.ADMIN:
+    if user.role == UserRole.TECHNICIAN:
         query = query.filter(WorkOrder.assigned_to == user.id)
     if status_filter:
         query = query.filter(WorkOrder.status == status_filter)
@@ -120,14 +121,14 @@ def update_status(db: Session, wo_id: UUID, new_status: WorkOrderStatus, user: U
 
 
 def assign_work_order(db: Session, wo_id: UUID, target_user_id: UUID) -> WorkOrder:
-    """Assign to a technician or operator (admin action)."""
+    """Assign to a technician (admin action)."""
     wo = get_work_order(db, wo_id)
 
     target = db.query(User).filter(User.id == target_user_id).first()
     if not target:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target user not found")
 
-    allowed_roles = {UserRole.TECHNICIAN, UserRole.OPERATOR}
+    allowed_roles = {UserRole.TECHNICIAN}
     if target.role not in allowed_roles:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

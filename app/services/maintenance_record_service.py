@@ -83,9 +83,10 @@ def create_maintenance_record(db: Session, payload: MaintenanceRecordCreate, per
 def list_maintenance_records(
     db: Session, user: User, equipment_id: Optional[UUID] = None,
 ) -> List[MaintenanceRecord]:
-    """Role-aware list: admin sees all; technician/operator see only their own."""
+    """Role-aware list: admin + operator see all (operator is a read-only
+    monitor); technician sees only the records they performed."""
     query = db.query(MaintenanceRecord)
-    if user.role != UserRole.ADMIN:
+    if user.role == UserRole.TECHNICIAN:
         query = query.filter(MaintenanceRecord.performed_by == user.id)
     if equipment_id:
         query = query.filter(MaintenanceRecord.equipment_id == equipment_id)

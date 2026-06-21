@@ -59,12 +59,12 @@ async def list_alerts(
 ):
     """Return alerts based on the caller's role.
 
-    - **Admin**: all alerts.
-    - **Technician / Operator**: only alerts assigned to them.
+    - **Admin / Operator**: all alerts (operator is a read-only monitor).
+    - **Technician**: only alerts assigned to them (their work queue).
 
     Supports optional ``?status=`` and ``?severity=`` query filters.
     """
-    if current_user.role == UserRole.ADMIN:
+    if current_user.role in (UserRole.ADMIN, UserRole.OPERATOR):
         return list_all_alerts(db, status_filter=status, severity_filter=severity)
     return list_alerts_for_user(
         db, current_user.id, status_filter=status, severity_filter=severity,
@@ -86,8 +86,9 @@ async def get_alert_detail(
     """Retrieve a single alert by ID with access control."""
     alert = get_alert(db, alert_id)
 
-    # Non-admins can only see alerts assigned to them
-    if current_user.role != UserRole.ADMIN and alert.assigned_to != current_user.id:
+    # Technicians can only see alerts assigned to them; admin + operator
+    # (read-only monitor) can view any alert.
+    if current_user.role == UserRole.TECHNICIAN and alert.assigned_to != current_user.id:
         raise HTTPException(
             status_code=http_status.HTTP_403_FORBIDDEN,
             detail="You can only view alerts assigned to you",

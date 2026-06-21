@@ -36,7 +36,7 @@ export default function Topbar({ unreadCount = 0 }) {
     { label: 'Fleet',         path: '/fleet' },
     { label: 'Prototype',     path: '/hardware' },
     { label: 'Alerts',        path: '/alerts', divider: true },
-    { label: 'Work Orders',   path: '/work-orders' },
+    { label: 'Work Orders',   path: '/work-orders', hideForOperator: true },
     { label: 'Maintenance',   path: '/maintenance' },
     { label: 'Reports',       path: '/reports', divider: true },
     { label: 'Users',         path: '/users', adminOnly: true },
@@ -77,8 +77,9 @@ export default function Topbar({ unreadCount = 0 }) {
           <>
             <div style={{ width: 1, height: 22, background: '#333b45' }} />
             <nav style={{ display: 'flex', gap: 4, flex: 1, alignItems: 'center' }}>
-              {nav.map(({ label, path, adminOnly, divider }) => {
+              {nav.map(({ label, path, adminOnly, divider, hideForOperator }) => {
                 if (adminOnly && role !== 'admin') return null
+                if (hideForOperator && role === 'operator') return null
                 const active = location.pathname === path
                 return (
                   <Fragment key={path}>
@@ -166,8 +167,9 @@ export default function Topbar({ unreadCount = 0 }) {
       {isMobile && menuOpen && (
         <div style={{ borderTop: '1px solid #333b45', background: 'rgba(27,32,39,.97)', padding: '10px 16px 14px' }}>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {nav.map(({ label, path, adminOnly }) => {
+            {nav.map(({ label, path, adminOnly, hideForOperator }) => {
               if (adminOnly && role !== 'admin') return null
+              if (hideForOperator && role === 'operator') return null
               const active = location.pathname === path
               return (
                 <Link

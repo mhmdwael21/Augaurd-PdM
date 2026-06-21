@@ -65,8 +65,9 @@ function StatCard({ label, icon, count, numColor, barColor, barW, highlight }) {
 }
 
 export default function WorkOrders() {
-  const { role } = useAuth()
+  const { role, username } = useAuth()
   const isAdmin = role === 'admin'
+  const isTech = role === 'technician'
   const { isMobile } = useResponsive()
 
   const [orders, setOrders] = useState([])
@@ -243,7 +244,7 @@ export default function WorkOrders() {
             const ps = severityStyle(o.priority)
             const ss = woStatusStyle(o.status)
             const assetTag = assetMap[String(o.equipment_id)]
-            const canAct = isAdmin || (o.assigned_to && userMap[String(o.assigned_to)] !== undefined)  // tech/op list is already scoped to own
+            const canAct = isAdmin || (isTech && o.assigned_to_username === username)  // operators read-only; techs act only on their own
             return (
               <div key={o.id} className="anim-in" style={{ background: '#222831', border: `1px solid ${o.status === 'open' ? 'rgba(203,91,60,.3)' : '#333b45'}`, borderRadius: 14, padding: '15px 18px', display: 'flex', flexDirection: 'column', gap: 12, animationDelay: `${idx * 40}ms` }}>
                 {/* Top row */}
@@ -265,12 +266,12 @@ export default function WorkOrders() {
 
                 {/* Actions row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap', borderTop: '1px solid #2f3742', paddingTop: 12 }}>
-                  {o.status === 'open' && (
+                  {canAct && o.status === 'open' && (
                     <button onClick={() => doStatus(o.id, 'in_progress')} style={{ padding: '8px 15px', borderRadius: 9, border: '1px solid rgba(217,169,74,.55)', background: 'rgba(217,169,74,.1)', color: '#E4C281', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
                       ▶ Start
                     </button>
                   )}
-                  {o.status === 'in_progress' && (
+                  {canAct && o.status === 'in_progress' && (
                     <button onClick={() => openComplete(o.id)} style={{ padding: '8px 15px', borderRadius: 9, border: 'none', background: '#7b8a43', color: '#1B2027', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
                       ✓ Complete &amp; Log
                     </button>
@@ -355,7 +356,7 @@ export default function WorkOrders() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: '#948979', textTransform: 'uppercase' }}>Select User</span>
-              {users.filter(u => u.role !== 'admin').map(u => (
+              {users.filter(u => u.role === 'technician').map(u => (
                 <button key={u.id} onClick={() => setAssignUserId(u.id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', borderRadius: 10, border: `1px solid ${assignUserId === u.id ? '#DFD0B8' : '#333b45'}`, background: assignUserId === u.id ? 'rgba(223,208,184,.08)' : '#1B2027', cursor: 'pointer' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2, textAlign: 'left' }}>
                     <span style={{ fontSize: 13.5, fontWeight: 600, color: '#DFD0B8' }}>{u.username}</span>

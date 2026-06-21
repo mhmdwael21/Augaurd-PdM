@@ -14,6 +14,7 @@
 | 2026-06-20 | Alert severity rework (IF-score bands), FAILURE state removed, inference_log model added — see Section 22 |
 | 2026-06-21 | Phase 1 of data-model expansion: asset-centric layer (equipment, sensors, FMEA failure_modes) + alert/log stamping + Fleet/Asset-Detail UI, FMEA alert cards, per-alert asset chips — see Section 23 |
 | 2026-06-21 | Phase 2 (work_orders + auto-spawn on HIGH/CRITICAL) and Phase 3 (maintenance_records + outcome feedback + precision/MTTR KPIs) — backend + frontend (Work Orders + Maintenance pages) — see Section 24 |
+| 2026-06-21 | Phase 4 (spare_parts + maintenance_parts MRO inventory): parts consumed on WO completion → stock decrement, low-stock flag, Inventory section + parts picker on the UI — see Section 25. **Data-model expansion COMPLETE.** Top nav trimmed/grouped. |
 
 ---
 
@@ -635,8 +636,8 @@ Mohamed Wael (primary dev), Eman Mousa, Eman Hussien, Hana Gohar, Fatema Salah, 
 - [x] Data-model expansion **Phase 1** — equipment + sensors + failure_modes tables, alert/log stamping, Fleet/Asset-Detail UI, FMEA cards, asset chips (Section 23)
 - [x] Data-model expansion **Phase 2** — `work_orders` + auto-spawn on HIGH/CRITICAL, Work Orders page (Section 24)
 - [x] Data-model expansion **Phase 3** — `maintenance_records` + outcome feedback + precision/MTTR KPIs, Maintenance page (Section 24)
-- [ ] Data-model expansion **Phase 4** — `spare_parts` + `maintenance_parts` (inventory + low-stock) — NEXT
-- [ ] UI: top nav now has 9 tabs — consider grouping/trimming
+- [x] Data-model expansion **Phase 4** — `spare_parts` + `maintenance_parts`, stock decrement on completion, Inventory UI (Section 25) — **expansion COMPLETE**
+- [x] UI: top nav trimmed + grouped (8 tabs, Monitoring | Operations | Analytics/Admin)
 - [ ] End-to-end test with the real board on the bench (reflash sketch first — new URL + device key)
 - [ ] Tune `HW_TRIGGER_DELTA_KPA` / `HW_TRIGGER_WINDOW_S` against real pressure-drop behaviour
 
@@ -899,6 +900,53 @@ FK-safe); keeps users/equipment/sensors/failure_modes.
 
 ### Commits
 Phase 2 `c801509`(+`3c8678b` fe) · Phase 3 `2b766ec`(+`ecddc4b` fe). All on `main`.
+
+---
+
+## 25. Data-Model Expansion — Phase 4 (Spare Parts / MRO Inventory)
+
+Final phase. Adds the parts catalog and links it to maintenance, so completing
+a work order consumes parts and decrements stock. Additive; ML pipeline untouched.
+**This completes the 6-table asset-centric data-model expansion.**
+
+### Tables
+- **`spare_parts`** (`app/models/spare_part.py`): `id, part_name, part_number
+  (unique), quantity_in_stock, min_stock_level, location, unit_cost, equipment_id
+  (FK, nullable = generic)`. Seeded 6 parts (idempotent on startup).
+- **`maintenance_parts`** (`app/models/maintenance_part.py`, Decision D join):
+  `id, maintenance_record_id (FK), spare_part_id (FK), quantity_used`.
+
+### Consumption flow
+`POST /work-orders/{id}/complete` accepts optional `parts_used:
+[{spare_part_id, quantity}]`. In the SAME transaction as the maintenance record:
+create `maintenance_parts` rows + **decrement stock, floored at 0** (Decision:
+allow + floor — never block a completion over inventory). The maintenance-record
+response lists parts consumed (`MaintenanceRecord.parts` relationship).
+
+### Low stock
+Computed flag `low_stock = quantity_in_stock <= min_stock_level` on the response.
+**No notification** — notifications stay reserved for ML alerts (per request);
+low stock is surfaced visually (LOW badge + low-stock count) in the UI.
+
+### API (RBAC: admin writes, any-auth reads)
+`POST /spare-parts`, `GET /spare-parts` (+`?low_stock=true`), `GET /{id}`,
+`PUT /{id}` (restock/edit).
+
+### Frontend (Inventory lives on the Maintenance page — no new nav tab)
+- Maintenance page: **Inventory** section (stock cards + bar, LOW badge,
+  low-stock count, admin Restock modal); records show the **Parts** consumed.
+- Work Orders "Complete & Log" modal: **Parts Used** picker (part + quantity).
+
+### Files / commits
+New: `app/models/{spare_part,maintenance_part}.py`,
+`app/schemas/spare_part_schema.py`, `app/services/spare_part_service.py`,
+`app/api/routes/spare_parts.py`. Edited: `maintenance_record` model/schema/service
+(parts), `work_orders` complete flow, `main.py`, `reset_runtime_data.py`,
+`frontend` (Maintenance, WorkOrders, api.js). Commits `0052dc5` (be) + `f959e4f` (fe).
+
+### Final data model (10 tables)
+users · alerts · notifications · inference_log · **equipment · sensors ·
+failure_modes · work_orders · maintenance_records · spare_parts (+ maintenance_parts join)**.
 
 ---
 

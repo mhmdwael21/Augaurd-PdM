@@ -92,6 +92,13 @@ export const getMaintenanceRecords = (params = {}) => {
 }
 export const getMaintenanceStats = () => api('/maintenance-records/stats')
 
+// Spare parts (MRO inventory)
+export const getSpareParts   = (params = {}) =>
+  api('/spare-parts/' + (params.low_stock ? '?low_stock=true' : ''))
+export const getSparePart    = (id)        => api('/spare-parts/' + id)
+export const createSparePart = (body)      => api('/spare-parts/', { method: 'POST', body: JSON.stringify(body) })
+export const updateSparePart = (id, body)  => api(`/spare-parts/${id}`, { method: 'PUT', body: JSON.stringify(body) })
+
 // Alerts
 export const getAlerts = (params = {}) => {
   if (DEMO) return mock.mockGetAlerts()

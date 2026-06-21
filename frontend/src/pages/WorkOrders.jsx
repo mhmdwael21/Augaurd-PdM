@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getWorkOrders, getUsers, getEquipment, createWorkOrder, updateWorkOrderStatus, assignWorkOrder, completeWorkOrder } from '../api'
+import { getWorkOrders, getUsers, getEquipment, createWorkOrder, updateWorkOrderStatus, assignWorkOrder, completeWorkOrder, getSpareParts } from '../api'
 import Topbar from '../components/Topbar'
 import { severityStyle } from '../tokens'
 import { useResponsive } from '../hooks/useResponsive'
@@ -95,6 +95,10 @@ export default function WorkOrders() {
   const [cOutcome, setCOutcome] = useState('failure_confirmed')
   const [cDowntime, setCDowntime] = useState('')
   const [cNotes, setCNotes] = useState('')
+  const [spareParts, setSpareParts] = useState([])
+  const [cParts, setCParts] = useState([])     // [{spare_part_id, quantity, name}]
+  const [pickId, setPickId] = useState('')
+  const [pickQty, setPickQty] = useState('1')
 
   const load = useCallback(async () => {
     try {
@@ -111,6 +115,7 @@ export default function WorkOrders() {
     getEquipment()
       .then(list => { setEquipment(list); setAssetMap(Object.fromEntries(list.map(e => [String(e.id), e.asset_tag]))) })
       .catch(() => {})
+    getSpareParts().then(setSpareParts).catch(() => {})
   }, [])
 
   const userMap = Object.fromEntries(users.map(u => [String(u.id), u.username]))
@@ -146,7 +151,20 @@ export default function WorkOrders() {
     } catch (e) { alert(e.message) }
   }
   function openComplete(id) {
-    setCompleteTarget(id); setCAction(''); setCOutcome('failure_confirmed'); setCDowntime(''); setCNotes(''); setCompleteOpen(true)
+    setCompleteTarget(id); setCAction(''); setCOutcome('failure_confirmed'); setCDowntime(''); setCNotes('')
+    setCParts([]); setPickId(''); setPickQty('1'); setCompleteOpen(true)
+  }
+  function addPart() {
+    if (!pickId) return
+    const part = spareParts.find(p => String(p.id) === String(pickId))
+    if (!part) return
+    const qty = Math.max(1, parseInt(pickQty, 10) || 1)
+    setCParts(prev => {
+      const existing = prev.find(p => p.spare_part_id === part.id)
+      if (existing) return prev.map(p => p.spare_part_id === part.id ? { ...p, quantity: p.quantity + qty } : p)
+      return [...prev, { spare_part_id: part.id, quantity: qty, name: part.part_name }]
+    })
+    setPickId(''); setPickQty('1')
   }
   async function doComplete() {
     if (!cAction) return
@@ -157,6 +175,7 @@ export default function WorkOrders() {
         maintenance_type: 'corrective',
         downtime_minutes: cDowntime ? parseInt(cDowntime, 10) : undefined,
         notes: cNotes || undefined,
+        parts_used: cParts.length ? cParts.map(p => ({ spare_part_id: p.spare_part_id, quantity: p.quantity })) : undefined,
       })
       await load()
       setCompleteOpen(false); setCompleteTarget(null)
@@ -395,6 +414,28 @@ export default function WorkOrders() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: '#948979', textTransform: 'uppercase' }}>Notes</label>
                 <textarea value={cNotes} onChange={e => setCNotes(e.target.value)} rows={2} placeholder="optional" style={{ padding: '11px 13px', borderRadius: 9, border: '1px solid #393E46', background: '#1B2027', color: '#DFD0B8', fontSize: 13.5, resize: 'vertical' }} />
+              </div>
+              {/* Parts used */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: '.1em', color: '#948979', textTransform: 'uppercase' }}>Parts Used (optional)</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <select value={pickId} onChange={e => setPickId(e.target.value)} style={{ flex: 1, padding: '10px 12px', borderRadius: 9, border: '1px solid #393E46', background: '#1B2027', color: '#DFD0B8', fontSize: 13 }}>
+                    <option value="">Select a part…</option>
+                    {spareParts.map(p => <option key={p.id} value={p.id}>{p.part_name} ({p.quantity_in_stock} in stock)</option>)}
+                  </select>
+                  <input value={pickQty} onChange={e => setPickQty(e.target.value)} type="number" min="1" style={{ width: 64, padding: '10px 10px', borderRadius: 9, border: '1px solid #393E46', background: '#1B2027', color: '#DFD0B8', fontSize: 13 }} />
+                  <button onClick={addPart} style={{ padding: '0 16px', borderRadius: 9, border: '1px solid #393E46', background: 'transparent', color: '#cabfa6', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>Add</button>
+                </div>
+                {cParts.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {cParts.map(p => (
+                      <div key={p.spare_part_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 11px', background: '#1B2027', borderRadius: 8 }}>
+                        <span style={{ fontSize: 12.5, color: '#DFD0B8' }}>{p.quantity}× {p.name}</span>
+                        <button onClick={() => setCParts(prev => prev.filter(x => x.spare_part_id !== p.spare_part_id))} style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid #393E46', background: 'transparent', color: '#948979', fontSize: 14, cursor: 'pointer' }}>×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>

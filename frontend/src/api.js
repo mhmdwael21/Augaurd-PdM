@@ -41,6 +41,14 @@ export const getUsers = () =>
   DEMO ? mock.mockGetUsers()
        : api('/auth/users')
 
+export const setUserActive = (id, isActive) =>
+  api(`/auth/users/${id}/active`, { method: 'PUT', body: JSON.stringify({ is_active: isActive }) })
+
+export const getMe = () => api('/auth/me')
+
+export const changePassword = (current_password, new_password) =>
+  api('/auth/me/password', { method: 'PUT', body: JSON.stringify({ current_password, new_password }) })
+
 // Dashboard
 export const getDashboard = () =>
   DEMO ? mock.mockGetDashboard()

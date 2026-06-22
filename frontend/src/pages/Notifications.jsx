@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { getNotifications, markNotifRead, sendNotification, getUsers } from '../api'
 import Topbar from '../components/Topbar'
+import Pagination from '../components/Pagination'
 import { useResponsive } from '../hooks/useResponsive'
+import { usePagination } from '../hooks/usePagination'
 
 const MS = ({ name, size = 17, color, style = {} }) => (
   <span style={{
@@ -98,6 +100,9 @@ export default function Notifications() {
     if (readFilter === 'read' && !n.is_read) return false
     return true
   })
+
+  const { pageItems, page, setPage, pageCount, from, to } = usePagination(filtered, 8)
+  useEffect(() => { setPage(1) }, [typeFilter, readFilter, setPage])
 
   const total = notifs.length
   const unread = notifs.filter(n => !n.is_read).length
@@ -197,7 +202,7 @@ export default function Notifications() {
             {!loading && filtered.length === 0 && (
               <div style={{ padding: 44, textAlign: 'center', background: '#222831', border: '1px dashed #333b45', borderRadius: 14, color: '#6f6a60', fontSize: 13 }}>No notifications match your filters.</div>
             )}
-            {filtered.map((n, idx) => {
+            {pageItems.map((n, idx) => {
               const isExp = !!expanded[n.id]
               const tm = TYPE_META[n.type] || TYPE_META.system
               const unreadStyle = !n.is_read ? { borderLeft: '3px solid rgba(203,91,60,.6)', background: 'rgba(203,91,60,.04)' } : {}
@@ -249,6 +254,10 @@ export default function Notifications() {
               )
             })}
           </div>
+
+          {!loading && (
+            <Pagination page={page} pageCount={pageCount} from={from} to={to} total={filtered.length} onPage={setPage} label="notifications" />
+          )}
         </div>
 
         {/* RIGHT RAIL */}

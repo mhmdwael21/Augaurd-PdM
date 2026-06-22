@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { getAlerts, getUsers, createAlert, updateAlertStatus, escalateAlert, assignAlert, getFailureModes, getEquipment } from '../api'
 import Topbar from '../components/Topbar'
+import Pagination from '../components/Pagination'
 import { severityStyle, statusStyle } from '../tokens'
 import { useResponsive } from '../hooks/useResponsive'
+import { usePagination } from '../hooks/usePagination'
 
 const MS = ({ name, size = 17, color, style = {} }) => (
   <span style={{
@@ -133,11 +135,20 @@ export default function Alerts() {
   const critN = alerts.filter(a => a.severity === 'critical').length
   const resolvedN = alerts.filter(a => a.status === 'resolved').length
 
+  const { pageItems, page, setPage, pageCount, from, to } = usePagination(filtered, 8)
+  // Jump back to page 1 whenever the filters/search change the result set.
+  useEffect(() => { setPage(1) }, [statusFilter, sevFilter, searchQ, setPage])
+
+  function surfaceError(e) {
+    let m = e?.message || 'Action failed'
+    try { m = JSON.parse(m).detail || m } catch {}
+    alert(m)
+  }
   async function doStatus(id, status) {
-    try { await updateAlertStatus(id, status); await load() } catch {}
+    try { await updateAlertStatus(id, status); await load() } catch (e) { surfaceError(e) }
   }
   async function doEscalate(id) {
-    try { await escalateAlert(id); await load() } catch {}
+    try { await escalateAlert(id); await load() } catch (e) { surfaceError(e) }
   }
   async function doAssign() {
     if (!assignUserId) return
@@ -222,7 +233,7 @@ export default function Alerts() {
             {!loading && filtered.length === 0 && (
               <div style={{ padding: 44, textAlign: 'center', background: '#222831', border: '1px dashed #333b45', borderRadius: 14, color: '#6f6a60', fontSize: 13 }}>No alerts match your current filters.</div>
             )}
-            {filtered.map((a, idx) => {
+            {pageItems.map((a, idx) => {
               const isExp = !!expanded[a.id]
               const ss = severityStyle(a.severity)
               const sts = statusStyle(a.status)
@@ -304,12 +315,12 @@ export default function Alerts() {
                         <span style={{ fontSize: 13, color: '#cabfa6', lineHeight: 1.5 }}>{a.recommended_action}</span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                        {isTech && a.status === 'new' && (
+                        {(isAdmin || isTech) && a.status === 'new' && (
                           <button onClick={() => doStatus(a.id, 'acknowledged')} style={{ padding: '9px 16px', borderRadius: 9, border: '1px solid rgba(217,169,74,.55)', background: 'rgba(217,169,74,.1)', color: '#E4C281', fontSize: 12.5, fontWeight: 600, cursor: 'pointer' }}>
                             Acknowledge
                           </button>
                         )}
-                        {isTech && a.status === 'acknowledged' && (
+                        {(isAdmin || isTech) && a.status === 'acknowledged' && (
                           <button onClick={() => doStatus(a.id, 'resolved')} style={{ padding: '9px 16px', borderRadius: 9, border: 'none', background: '#7b8a43', color: '#1B2027', fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>
                             Mark Resolved
                           </button>
@@ -335,6 +346,10 @@ export default function Alerts() {
               )
             })}
           </div>
+
+          {!loading && (
+            <Pagination page={page} pageCount={pageCount} from={from} to={to} total={filtered.length} onPage={setPage} label="alerts" />
+          )}
         </div>
 
         {/* RIGHT RAIL */}

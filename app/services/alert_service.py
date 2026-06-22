@@ -201,20 +201,20 @@ def update_alert_status(
     """Update alert status with lifecycle enforcement.
 
     Rules:
-        - Only the assigned user may update the status.
+        - Admin or the assigned user may update the status.
         - Only forward transitions are allowed: New -> Acknowledged -> Resolved.
 
     Raises:
-        HTTPException 403: If the user is not the assigned user.
+        HTTPException 403: If the user is neither an admin nor the assigned user.
         HTTPException 400: If the status transition is invalid.
         HTTPException 404: If the alert does not exist.
     """
     alert = get_alert(db, alert_id)
 
-    if alert.assigned_to != user.id:
+    if user.role != UserRole.ADMIN and alert.assigned_to != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only the assigned user can update alert status",
+            detail="Only the assigned user or an admin can update alert status",
         )
 
     allowed_next = VALID_TRANSITIONS.get(alert.status, set())

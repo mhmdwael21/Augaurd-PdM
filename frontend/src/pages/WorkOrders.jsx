@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { getWorkOrders, getUsers, getEquipment, createWorkOrder, updateWorkOrderStatus, assignWorkOrder, completeWorkOrder, getSpareParts } from '../api'
 import Topbar from '../components/Topbar'
+import Pagination from '../components/Pagination'
 import { severityStyle } from '../tokens'
 import { useResponsive } from '../hooks/useResponsive'
+import { usePagination } from '../hooks/usePagination'
 
 const MS = ({ name, size = 17, color, style = {} }) => (
   <span style={{
@@ -130,6 +132,9 @@ export default function WorkOrders() {
     return true
   })
 
+  const { pageItems, page, setPage, pageCount, from, to } = usePagination(filtered, 8)
+  useEffect(() => { setPage(1) }, [statusFilter, searchQ, setPage])
+
   const total = orders.length
   const openN = orders.filter(o => o.status === 'open').length
   const progN = orders.filter(o => o.status === 'in_progress').length
@@ -240,7 +245,7 @@ export default function WorkOrders() {
               No work orders match your filters. High/critical alerts generate them automatically.
             </div>
           )}
-          {filtered.map((o, idx) => {
+          {pageItems.map((o, idx) => {
             const ps = severityStyle(o.priority)
             const ss = woStatusStyle(o.status)
             const assetTag = assetMap[String(o.equipment_id)]
@@ -295,6 +300,10 @@ export default function WorkOrders() {
             )
           })}
         </div>
+
+        {!loading && (
+          <Pagination page={page} pageCount={pageCount} from={from} to={to} total={filtered.length} onPage={setPage} label="orders" />
+        )}
       </div>
 
       {/* CREATE MODAL */}

@@ -2,11 +2,13 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { getReportsAlerts, getNotifications, getInferenceHistory, getInferenceStats, getInferenceEpisode, getEquipment } from '../api'
 import Topbar from '../components/Topbar'
+import Pagination from '../components/Pagination'
 import {
   SensorOverlayChart, RulCurveChart, FaultDonutChart, KnownVsNovelChart, ANALOG_SENSORS,
 } from '../components/ReportCharts'
 import { severityStyle, statusStyle } from '../tokens'
 import { useResponsive } from '../hooks/useResponsive'
+import { usePagination } from '../hooks/usePagination'
 import { getDiagnosis, getResolutionMetrics } from '../utils/diagnosisEngine'
 
 // ── Shared helpers ───────────────────────────────────────────────────
@@ -847,6 +849,9 @@ export default function Reports() {
     return sortRows(rows, sortField, sortDir)
   }, [alerts, scenarioFilter, sortField, sortDir])
 
+  const { pageItems, page, setPage, pageCount, from, to } = usePagination(displayed, 12)
+  useEffect(() => { setPage(1) }, [statusFilter, sevFilter, fromDate, toDate, scenarioFilter, sortField, sortDir, setPage])
+
   // Stats from displayed rows
   const stats = useMemo(() => ({
     total:    displayed.length,
@@ -1225,7 +1230,7 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {displayed.map(alert => {
+                  {pageItems.map(alert => {
                     const scenario   = alertScenario(alert)
                     const isExpanded = expandedId === alert.id
                     return (
@@ -1318,6 +1323,12 @@ export default function Reports() {
                 Click a row to expand · sorted by {sortField} {sortDir}
               </span>
             </div>
+
+            {!loading && (
+              <div style={{ padding: '4px 18px 14px' }}>
+                <Pagination page={page} pageCount={pageCount} from={from} to={to} total={displayed.length} onPage={setPage} label="episodes" />
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -27,6 +27,19 @@ class UserLogin(BaseModel):
     password: str = Field(..., description="Plain-text password")
 
 
+class UserActiveUpdate(BaseModel):
+    """Body for PUT /auth/users/{id}/active — activate or deactivate an account."""
+
+    is_active: bool = Field(..., description="True to activate, False to deactivate")
+
+
+class PasswordChange(BaseModel):
+    """Body for PUT /auth/me/password — change your own password."""
+
+    current_password: str = Field(..., description="Current plain-text password")
+    new_password: str = Field(..., min_length=6, description="New password (min 6 chars)")
+
+
 # ── Response Schemas ─────────────────────────────────────────────────
 
 class TokenResponse(BaseModel):
@@ -43,6 +56,7 @@ class UserResponse(BaseModel):
     username: str
     email: str
     role: UserRole
+    is_active: bool = True
     created_at: datetime
 
     class Config:

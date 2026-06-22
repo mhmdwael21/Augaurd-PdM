@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { getUsers, register } from '../api'
+import { getUsers, register, setUserActive } from '../api'
 import Topbar from '../components/Topbar'
 import { roleStyle } from '../tokens'
 import { useResponsive } from '../hooks/useResponsive'
@@ -63,7 +63,7 @@ function StatCard({ label, icon, count, numColor, barColor, barW }) {
 }
 
 export default function Users() {
-  const { role } = useAuth()
+  const { role, username } = useAuth()
   const { isMobile } = useResponsive()
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -112,6 +112,11 @@ export default function Users() {
       setAddErr(err?.message || 'Registration failed.')
     }
     setAdding(false)
+  }
+
+  async function doToggleActive(u) {
+    try { await setUserActive(u.id, !(u.is_active !== false)); await load() }
+    catch (e) { let m = e?.message || 'Failed'; try { m = JSON.parse(m).detail || m } catch {} ; alert(m) }
   }
 
   const roleOpts = ['all', 'admin', 'technician', 'operator']
@@ -187,22 +192,36 @@ export default function Users() {
           {/* USER TABLE */}
           <div style={{ background: '#222831', border: '1px solid #333b45', borderRadius: 14, overflow: 'hidden' }}>
             {/* header row */}
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '36px 1fr 90px' : '40px 1fr 1fr 110px 130px', gap: 12, padding: '11px 18px', borderBottom: '1px solid #2f3742', alignItems: 'center' }}>
-              {(isMobile ? ['', 'Username', 'Role'] : ['', 'Username', 'Email', 'Role', 'Joined']).map((h, i) => (
-                <span key={i} style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', color: '#6f6a60', textTransform: 'uppercase' }}>{h}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '32px 1fr 70px 88px' : '40px 1fr 1fr 100px 110px 120px', gap: 12, padding: '11px 18px', borderBottom: '1px solid #2f3742', alignItems: 'center' }}>
+              {(isMobile ? ['', 'Username', 'Role', 'Status'] : ['', 'Username', 'Email', 'Role', 'Joined', 'Status']).map((h, i) => (
+                <span key={i} style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.12em', color: '#6f6a60', textTransform: 'uppercase', textAlign: h === 'Status' ? 'right' : 'left' }}>{h}</span>
               ))}
             </div>
             {loading && <div style={{ padding: 44, textAlign: 'center', color: '#6f6a60', fontSize: 13 }}>Loading…</div>}
             {!loading && filtered.length === 0 && <div style={{ padding: 44, textAlign: 'center', color: '#6f6a60', fontSize: 13 }}>No users found.</div>}
             {filtered.map((u, idx) => {
               const rs = roleStyle(u.role)
+              const active = u.is_active !== false
+              const locked = u.username === username || u.username === 'auguard-ai'  // can't toggle self or system
               return (
-                <div key={u.id} className="anim-in" style={{ display: 'grid', gridTemplateColumns: isMobile ? '36px 1fr 90px' : '40px 1fr 1fr 110px 130px', gap: 12, padding: '13px 18px', alignItems: 'center', borderBottom: '1px solid #2a303a', animationDelay: `${idx * 35}ms` }}>
+                <div key={u.id} className="anim-in" style={{ display: 'grid', gridTemplateColumns: isMobile ? '32px 1fr 70px 88px' : '40px 1fr 1fr 100px 110px 120px', gap: 12, padding: '13px 18px', alignItems: 'center', borderBottom: '1px solid #2a303a', animationDelay: `${idx * 35}ms`, opacity: active ? 1 : 0.5 }}>
                   <Avatar username={u.username} size={isMobile ? 32 : 36} />
                   <span style={{ fontSize: isMobile ? 13 : 13.5, fontWeight: 600, color: '#DFD0B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.username}</span>
                   {!isMobile && <span style={{ fontSize: 12.5, color: '#948979', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.email || '—'}</span>}
                   <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.08em', padding: '4px 8px', borderRadius: 7, textTransform: 'uppercase', ...rs, alignSelf: 'center', display: 'inline-block' }}>{u.role}</span>
                   {!isMobile && <span style={{ fontSize: 12, color: '#7c756a' }}>{fmtDate(u.created_at)}</span>}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                    {locked ? (
+                      <span style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '.05em', color: active ? '#C6D196' : '#948979' }}>{active ? 'ACTIVE' : 'INACTIVE'}</span>
+                    ) : (
+                      <button onClick={() => doToggleActive(u)} style={{
+                        padding: '6px 11px', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 11.5, whiteSpace: 'nowrap',
+                        border: `1px solid ${active ? 'rgba(203,91,60,.45)' : 'rgba(123,138,67,.5)'}`,
+                        background: active ? 'rgba(203,91,60,.1)' : 'rgba(123,138,67,.12)',
+                        color: active ? '#E0987F' : '#C6D196',
+                      }}>{active ? 'Deactivate' : 'Reactivate'}</button>
+                    )}
+                  </div>
                 </div>
               )
             })}
@@ -279,6 +298,7 @@ export default function Users() {
             {[
               { method: 'GET', path: '/', col: '#C6D196', bg: 'rgba(123,138,67,.2)' },
               { method: 'POST', path: '/register', col: '#E4C281', bg: 'rgba(217,169,74,.2)' },
+              { method: 'PUT', path: '/users/{id}/active', col: '#cabfa6', bg: 'rgba(148,137,121,.2)' },
             ].map(ep => (
               <div key={ep.path + ep.method} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 10px', background: '#1B2027', borderRadius: 8 }}>
                 <span style={{ fontSize: 9.5, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: ep.bg, color: ep.col }}>{ep.method}</span>

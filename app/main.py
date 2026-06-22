@@ -55,6 +55,8 @@ async def lifespan(app: FastAPI):
         conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS equipment_id UUID"))
         conn.execute(text("ALTER TABLE alerts ADD COLUMN IF NOT EXISTS failure_mode_id UUID"))
         conn.execute(text("ALTER TABLE inference_log ADD COLUMN IF NOT EXISTS equipment_id UUID"))
+        # Account activation flag (additive). Existing users default to active.
+        conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE"))
         # Backfill any pre-existing rows to the live asset (Decision B). One-time:
         # a no-op once every row is stamped. failure_mode_id is left NULL on old
         # rows by design (can't reverse-engineer fault category from old text).

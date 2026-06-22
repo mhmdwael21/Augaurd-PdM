@@ -12,6 +12,7 @@ import Maintenance from './pages/Maintenance'
 import Notifications from './pages/Notifications'
 import Reports from './pages/Reports'
 import Users from './pages/Users'
+import Profile from './pages/Profile'
 
 function RequireAuth({ children }) {
   const { token } = useAuth()
@@ -53,6 +54,7 @@ function AppRoutes() {
       <Route path="/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
       <Route path="/reports" element={<RequireAuth><Reports /></RequireAuth>} />
       <Route path="/users" element={<RequireAdmin><Users /></RequireAdmin>} />
+      <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

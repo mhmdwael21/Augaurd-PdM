@@ -1,7 +1,8 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useResponsive } from '../hooks/useResponsive'
+import { getNotifications } from '../api'
 
 const MS = ({ name, size = 19, color, style = {} }) => (
   <span
@@ -22,12 +23,27 @@ const MS = ({ name, size = 19, color, style = {} }) => (
   </span>
 )
 
-export default function Topbar({ unreadCount = 0 }) {
+export default function Topbar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { role, username, logout } = useAuth()
+  const { role, username, logout, token } = useAuth()
   const { isMobile } = useResponsive()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  // Single source of truth for the bell badge: fetched here (+ polled) so every
+  // page shows the same count. Previously each page passed its own prop, and
+  // several passed a hardcoded 0, so the badge disappeared on those pages.
+  useEffect(() => {
+    if (!token) return
+    let alive = true
+    const tick = () => getNotifications()
+      .then(ns => { if (alive) setUnreadCount((ns || []).filter(n => !n.is_read).length) })
+      .catch(() => {})
+    tick()
+    const id = setInterval(tick, 10000)
+    return () => { alive = false; clearInterval(id) }
+  }, [token])
 
   // Grouped: Monitoring | Operations | Analytics+Admin. Notifications lives on
   // the 🔔 bell (top-right), so it's not a text tab. `divider` starts a group.
@@ -128,14 +144,14 @@ export default function Topbar({ unreadCount = 0 }) {
           </Link>
 
           {!isMobile ? (
-            <button
-              onClick={handleLogout}
+            <Link
+              to="/profile"
               style={{
                 display: 'flex', alignItems: 'center', gap: 9,
-                padding: '5px 11px 5px 5px', border: '1px solid #333b45',
-                borderRadius: 999, background: '#222831', cursor: 'pointer',
+                padding: '5px 11px 5px 5px', border: `1px solid ${location.pathname === '/profile' ? '#948979' : '#333b45'}`,
+                borderRadius: 999, background: '#222831', cursor: 'pointer', textDecoration: 'none',
               }}
-              title="Sign out"
+              title="View profile"
             >
               <span style={{
                 width: 28, height: 28, borderRadius: '50%',
@@ -151,7 +167,7 @@ export default function Topbar({ unreadCount = 0 }) {
                   {role?.toUpperCase()}
                 </span>
               </div>
-            </button>
+            </Link>
           ) : (
             <button
               onClick={() => setMenuOpen(v => !v)}
@@ -185,7 +201,7 @@ export default function Topbar({ unreadCount = 0 }) {
             })}
           </nav>
           <div style={{ marginTop: 10, borderTop: '1px solid #2f3742', paddingTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Link to="/profile" onClick={() => setMenuOpen(false)} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
               <span style={{
                 width: 32, height: 32, borderRadius: '50%',
                 background: 'linear-gradient(150deg,#393E46,#948979)',
@@ -197,10 +213,10 @@ export default function Topbar({ unreadCount = 0 }) {
                   {username || 'User'}
                 </span>
                 <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.1em', color: '#7b8a43' }}>
-                  {role?.toUpperCase()}
+                  {role?.toUpperCase()} · View profile
                 </span>
               </div>
-            </div>
+            </Link>
             <button onClick={handleLogout} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #3a414c', background: 'transparent', color: '#948979', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
               Sign out
             </button>

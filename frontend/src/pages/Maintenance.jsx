@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { getMaintenanceRecords, getMaintenanceStats, getEquipment, getSpareParts, updateSparePart } from '../api'
 import Topbar from '../components/Topbar'
+import Pagination from '../components/Pagination'
 import { useResponsive } from '../hooks/useResponsive'
+import { usePagination } from '../hooks/usePagination'
 import { C } from '../tokens'
 
 const MS = ({ name, size = 18, color, style = {} }) => (
@@ -100,6 +102,7 @@ export default function Maintenance() {
 
   const precision = stats?.precision_pct
   const precColor = precision == null ? C.textDim : precision >= 75 ? C.normalText : precision >= 50 ? C.warnText : C.critText
+  const { pageItems, page, setPage, pageCount, from, to } = usePagination(records, 8)
 
   return (
     <div style={{ minHeight: '100vh', background: C.bgBase, color: C.textPrimary }}>
@@ -172,7 +175,7 @@ export default function Maintenance() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {records.map(r => {
+              {pageItems.map(r => {
                 const os = r.outcome ? outcomeStyle(r.outcome) : null
                 const assetTag = assetMap[String(r.equipment_id)]
                 return (
@@ -200,6 +203,9 @@ export default function Maintenance() {
                 )
               })}
             </div>
+          )}
+          {!loading && (
+            <Pagination page={page} pageCount={pageCount} from={from} to={to} total={records.length} onPage={setPage} label="records" />
           )}
         </div>
       </div>

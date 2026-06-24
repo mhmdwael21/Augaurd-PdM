@@ -182,6 +182,12 @@ export default function Dashboard() {
   const per = loc?.available ? (loc.per_sensor || []) : []
   const maxErr = per.length ? Math.max(...per.map(p => p.error)) || 1 : 1
 
+  // Novel Failure Capture — LIVE card. Shows only while a novel failure is actively
+  // being detected (IF flagged the anomaly AND the classifier abstained → UNKNOWN);
+  // it disappears the moment the episode clears. Suppressed on F3 (KNOWN signature).
+  const showNovel = ready && clf?.verdict === 'UNKNOWN' && loc?.available && replay.scenario !== 'F3'
+  const novelTop = (loc?.top3 || []).slice(0, 3)
+
   return (
     <div style={{ minHeight: '100vh', background: 'radial-gradient(1200px 600px at 80% -10%, #232a33 0%, #1B2027 60%)', color: '#DFD0B8' }}>
       <Topbar unreadCount={unreadCount} activePage="Dashboard" />
@@ -378,6 +384,86 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* NOVEL FAILURE CAPTURE — live card; shows only while a novel failure is actively detected */}
+        {showNovel && (
+          <div style={{
+            background: 'linear-gradient(180deg, rgba(203,91,60,.10), rgba(203,91,60,.04))',
+            border: '1px solid rgba(203,91,60,.45)',
+            borderRadius: 16, padding: isMobile ? '16px 16px' : '18px 22px',
+            boxShadow: '0 0 0 1px rgba(190,80,52,.18), 0 14px 40px rgba(190,80,52,.14)',
+            display: 'flex', flexDirection: 'column', gap: 14,
+          }}>
+            {/* header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#CB5B3C', boxShadow: '0 0 12px #CB5B3C' }} />
+              <span style={{ fontWeight: 800, fontSize: isMobile ? 16 : 18, letterSpacing: '.04em', color: '#E0987F' }}>
+                NOVEL FAILURE DETECTED
+              </span>
+              <span style={{ fontSize: 11, padding: '3px 9px', borderRadius: 6, background: 'rgba(203,91,60,.18)', border: '1px solid rgba(203,91,60,.45)', color: '#E0987F', fontWeight: 600 }}>
+                APU-01
+              </span>
+              <span style={{ marginLeft: 'auto', fontSize: 11.5, color: '#948979' }}>{fmtDate(snap?.timestamp)}</span>
+            </div>
+
+            <div style={{ fontSize: 13, color: '#cabfa6', lineHeight: 1.5 }}>
+              Unrecognized failure pattern — the Isolation Forest flagged this anomaly, but the
+              supervised classifier abstained <strong style={{ color: '#E0987F' }}>(NOVEL)</strong>.
+              It did not match any learned leak signature.
+            </div>
+
+            {/* body grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.1fr 1fr', gap: 16 }}>
+              {/* localizer diagnosis */}
+              <div style={{ background: 'rgba(27,32,39,.5)', border: '1px solid #333b45', borderRadius: 12, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <span style={{ fontSize: 10.5, letterSpacing: '.18em', color: '#948979' }}>LSTM LOCALIZER · DIAGNOSIS</span>
+                <span style={{ fontWeight: 700, fontSize: 18, color: '#E0987F' }}>{loc?.fault_type || 'Anomaly'}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {novelTop.map((p, i) => (
+                    <div key={p.sensor || i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 10, color: '#7c756a', width: 14 }}>#{i + 1}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: '#DFD0B8' }}>{p.sensor}</span>
+                      </span>
+                      <span style={{ fontSize: 12, color: '#E4C281', fontVariantNumeric: 'tabular-nums' }}>err {Number(p.error).toFixed(3)}</span>
+                    </div>
+                  ))}
+                  {!novelTop.length && <span style={{ fontSize: 12, color: '#7c756a' }}>no localized sensors</span>}
+                </div>
+              </div>
+
+              {/* score + action */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1, background: 'rgba(27,32,39,.5)', border: '1px solid #333b45', borderRadius: 12, padding: '12px 14px' }}>
+                    <span style={{ fontSize: 10.5, letterSpacing: '.16em', color: '#948979' }}>ANOMALY SCORE</span>
+                    <div style={{ fontWeight: 700, fontSize: 26, color: '#E0987F' }}>
+                      {ready ? Number(score).toFixed(2) : '—'}
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, background: 'rgba(27,32,39,.5)', border: '1px solid #333b45', borderRadius: 12, padding: '12px 14px' }}>
+                    <span style={{ fontSize: 10.5, letterSpacing: '.16em', color: '#948979' }}>NOVELTY</span>
+                    <div style={{ fontWeight: 700, fontSize: 26, color: '#E0987F' }}>
+                      {clfProb != null ? `${Math.round((1 - clfProb) * 100)}%` : '—'}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ background: 'rgba(27,32,39,.5)', border: '1px solid #333b45', borderRadius: 12, padding: '12px 14px' }}>
+                  <span style={{ fontSize: 10.5, letterSpacing: '.16em', color: '#948979' }}>RECOMMENDED ACTION</span>
+                  <div style={{ fontSize: 13, color: '#DFD0B8', lineHeight: 1.45, marginTop: 4 }}>
+                    {loc?.action || 'Investigate the flagged sensors and recent trend.'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* learning-candidate footnote */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#948979', borderTop: '1px solid rgba(203,91,60,.22)', paddingTop: 12 }}>
+              <MS name="model_training" size={16} color="#948979" />
+              Logged as a learning candidate — captured for retraining so the model can recognise this pattern in future.
+            </div>
+          </div>
+        )}
 
         {/* AI ALERTS FEED — real DB alerts (read-only; lifecycle on the Alerts page) */}
         <div style={{ ...PANEL }}>

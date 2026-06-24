@@ -17,6 +17,7 @@ from app.api.routes.maintenance_records import router as maintenance_records_rou
 from app.api.routes.spare_parts import router as spare_parts_router
 from app.api.routes.hardware import router as hardware_router
 from app.api.routes.inference import router as inference_router
+from app.api.routes.novel_failures import router as novel_failures_router
 from app.api.routes.notifications import router as notifications_router
 from app.api.routes.reports import router as reports_router
 from app.core.config import MODEL_VERSION, SERVICE_NAME
@@ -34,6 +35,7 @@ from app.models.work_order import WorkOrder  # noqa: F401
 from app.models.maintenance_record import MaintenanceRecord  # noqa: F401
 from app.models.spare_part import SparePart  # noqa: F401
 from app.models.maintenance_part import MaintenancePart  # noqa: F401
+from app.models.novel_failure_candidate import NovelFailureCandidate  # noqa: F401
 
 
 # ── Lifespan ─────────────────────────────────────────────────────────
@@ -124,3 +126,4 @@ app.include_router(notifications_router)
 app.include_router(reports_router)
 app.include_router(hardware_router)
 app.include_router(inference_router)
+app.include_router(novel_failures_router)

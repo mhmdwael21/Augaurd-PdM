@@ -171,6 +171,12 @@ export const getInferenceStats = (params = {}) => {
 }
 export const getInferenceEpisode = (alertId) => api('/inference/episode/' + alertId)
 
+// Novel Failure Capture — UNKNOWN failures logged as learning candidates
+export const getLatestNovelFailure = (scenario) =>
+  api('/novel-failures/latest' + (scenario ? '?scenario=' + scenario : ''))
+export const getNovelFailures = (params = {}) =>
+  api('/novel-failures/' + (params.status ? '?status=' + params.status : ''))
+
 // Notifications
 export const getNotifications = () =>
   DEMO ? mock.mockGetNotifications()

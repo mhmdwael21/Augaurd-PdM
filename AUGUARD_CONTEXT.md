@@ -15,6 +15,7 @@
 | 2026-06-21 | Phase 1 of data-model expansion: asset-centric layer (equipment, sensors, FMEA failure_modes) + alert/log stamping + Fleet/Asset-Detail UI, FMEA alert cards, per-alert asset chips — see Section 23 |
 | 2026-06-21 | Phase 2 (work_orders + auto-spawn on HIGH/CRITICAL) and Phase 3 (maintenance_records + outcome feedback + precision/MTTR KPIs) — backend + frontend (Work Orders + Maintenance pages) — see Section 24 |
 | 2026-06-21 | Phase 4 (spare_parts + maintenance_parts MRO inventory): parts consumed on WO completion → stock decrement, low-stock flag, Inventory section + parts picker on the UI — see Section 25. **Data-model expansion COMPLETE.** Top nav trimmed/grouped. |
+| 2026-06-24 | Novel Failure Capture feedback loop: `novel_failure_candidates` table captures every UNKNOWN-verdict anomaly (labelled with the LSTM localizer diagnosis) as future training data; captured in decision_service (try/except, additive); `/novel-failures` routes; sticky "NOVEL FAILURE DETECTED" Dashboard card — see Section 26. ML pipeline untouched. |
 
 ---
 
@@ -950,4 +951,52 @@ failure_modes · work_orders · maintenance_records · spare_parts (+ maintenanc
 
 ---
 
-*Last updated: 2026-06-21*
+## 26. Novel Failure Capture (Feedback Loop)
+
+When the IF flags an anomaly but the supervised classifier abstains
+(`verdict == "UNKNOWN"`), that "unknown" is a failure pattern the system has never
+seen — a future training target, not a dead end. Each one is captured, labelled
+with the LSTM localizer's diagnosis. Additive; ML pipeline / engine untouched
+(engine stays DB-free). Work-order spawning intentionally out of scope here.
+
+### Table `novel_failure_candidates` (`app/models/novel_failure_candidate.py`)
+`id, alert_id (loose, nullable), equipment_id (APU-01), detected_at (server now),
+data_timestamp, scenario, anomaly_score, classifier_probability,
+classifier_verdict (="UNKNOWN"), fault_type, top_sensors (JSON localizer top-3),
+recommended_action, status (new|under_review|confirmed|dismissed, default new)`.
+**Dedup:** unique `(data_timestamp, scenario)` + `ON CONFLICT DO NOTHING`,
+mirroring `inference_log` (scenario passed from decision_service — a real value is
+required since Postgres treats NULLs as distinct). Note: `alert_event` fires once
+per severity band, so one F4 episode can yield a couple rows at different
+data-times; `get_latest_candidate` (newest-first) drives the card correctly.
+
+### Capture (`app/services/decision_service.py` → `handle_snapshot`)
+The single place ML output becomes DB rows. After the existing alert/notification/
+work-order flow, **if `classifier.verdict == "UNKNOWN"`** →
+`novel_failure_service.create_candidate(db, snap, alert_id, scenario)`, wrapped in
+`try/except` + `db.rollback()` so a capture failure can never break the alert flow.
+
+### Service / Schema / Routes
+`app/services/novel_failure_service.py` (`create_candidate`, `list_candidates`,
+`get_latest_candidate`, `update_status`) · `app/schemas/novel_failure_schema.py`
+(`NovelFailureCandidateResponse`, `NovelFailureStatusUpdate`) ·
+`app/api/routes/novel_failures.py` (prefix `/novel-failures`): `GET /` (any auth,
+`?status=`), `GET /latest` (any auth, card), `PUT /{id}/status` (admin). Registered
+in `main.py`; model imported so `create_all` builds the table on startup.
+
+### Frontend (`Dashboard.jsx`)
+**LIVE** high-attention "NOVEL FAILURE DETECTED" card (rust/anomaly palette),
+positioned **between the Fault Localization panel and the AI-Generated Alerts
+feed**. Driven straight off the live snapshot — shows only while a novel failure is
+actively detected (`ready && classifier.verdict === 'UNKNOWN' && localization.available
+&& replay.scenario !== 'F3'`) and disappears the moment the episode clears. Reads
+fault_type, top-3 culprit sensors + error values (`localization.top3`), recommended
+action, anomaly score, novelty % straight from the snapshot — no DB poll. Suppressed
+on F3 (the KNOWN signature; a classifier flicker can still log an F3 candidate
+server-side — the capture stays, correct by design, but is never surfaced on F3).
+The `/novel-failures` endpoints remain the persistence/triage layer for the captured
+candidates (the learning log); the card itself no longer reads them.
+
+---
+
+*Last updated: 2026-06-24*

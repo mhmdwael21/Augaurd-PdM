@@ -19,6 +19,7 @@ from app.schemas.notification_schema import NotificationCreate
 from app.services.alert_service import create_alert
 from app.services.failure_mode_service import get_failure_mode_by_fault_type
 from app.services.notification_service import create_notification
+from app.services.novel_failure_service import create_candidate
 from app.services.work_order_service import spawn_work_order_for_alert
 from app.utils.security import hash_password
 
@@ -157,6 +158,17 @@ def handle_snapshot(snap, scenario=None):
                 spawn_work_order_for_alert(db, alert, sys_id)
             except Exception:
                 logger.exception("work-order auto-spawn failed for alert %s", alert.id)
+        # Novel Failure Capture: when the supervised classifier abstains
+        # (verdict == "UNKNOWN") on an alert the IF still flagged, log it as a
+        # learning candidate — labelled with the LSTM localizer's diagnosis — so
+        # it can become future training data. Isolated so a capture failure can
+        # never break the alert/notification flow that already committed above.
+        if snap.get("classifier", {}).get("verdict") == "UNKNOWN":
+            try:
+                create_candidate(db, snap, alert_id=alert.id, scenario=scenario)
+            except Exception:
+                db.rollback()
+                logger.exception("novel-failure capture failed for alert %s", alert.id)
         rul = snap["rul"]
         logger.info(
             "AI alert %s created [%s] %s (score=%.3f, rul=%s, verdict=%s)",
